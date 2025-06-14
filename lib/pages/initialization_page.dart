@@ -37,8 +37,9 @@ class InitializationPage extends StatelessWidget {
                   FlutterForegroundTask.minimizeApp();
                   var result = await promise;
 
-                  print(result);
-                  print("TESTTESTEST");
+                  String code = result.toString().split("code=").last;
+
+                  print(code);
                 },
 
                 style: const ButtonStyle(
