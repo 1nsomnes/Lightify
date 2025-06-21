@@ -62,7 +62,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     _controller = WebViewController.fromPlatformCreationParams(params);
-    /*_controller 
+    _controller 
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         'FlutterHost',
@@ -70,11 +70,11 @@ window.addEventListener('DOMContentLoaded', () => {
           print("JS says: ${msg.message}");
         },
       )
-      ..loadHtmlString(_html);*/
+      ..loadHtmlString(_html);
 
-    _controller
+    /*_controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://fluter.dev'));
+      ..loadRequest(Uri.parse('https://flutter.dev'));*/
   }
 
   @override
