@@ -15,39 +15,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
 
-  static const String _html = '''
-  <!DOCTYPE html>
-  <html>
-   <head>
-    <script>
-function playBeep() {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, ctx.currentTime); // 440 Hz = A4
-      osc.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.2); // play for 0.2 seconds
-    }
-
-      function sayHello(name) {
-        document.body.innerHTML = "<h1>Hello, " + name + "!</h1>";
-        // send a message back to Flutter
-        FlutterHost.postMessage("Greeted " + name);
-
-        playBeep();
-      }
-window.addEventListener('DOMContentLoaded', () => {
-      playBeep();
-    });
-      playBeep();
-    </script>
-   </head>
-   <body><h1>Waiting...</h1></body>
-  </html>
-  ''';
-
   Future<void> loadHtmlFromAssets() async {
     final html = await rootBundle.loadString('assets/player.html');
     _controller.loadHtmlString(html);
@@ -67,11 +34,13 @@ window.addEventListener('DOMContentLoaded', () => {
       params = const PlatformWebViewControllerCreationParams();
     }
 
-
-
     _controller = WebViewController.fromPlatformCreationParams(params);
-    _controller 
+    _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setOnConsoleMessage((JavaScriptConsoleMessage msg) {
+        // You can see msg.message, msg.lineNumber, msg.sourceURL, msg.messageLevel, etc.
+        debugPrint('[WebView][JS:${msg.level}] ${msg.message} ');
+      })
       ..addJavaScriptChannel(
         'FlutterHost',
         onMessageReceived: (JavaScriptMessage msg) {
@@ -80,7 +49,6 @@ window.addEventListener('DOMContentLoaded', () => {
       );
 
     loadHtmlFromAssets();
-
   }
 
   @override
