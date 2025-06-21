@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +48,11 @@ window.addEventListener('DOMContentLoaded', () => {
   </html>
   ''';
 
+  Future<void> loadHtmlFromAssets() async {
+    final html = await rootBundle.loadString('assets/player.html');
+    _controller.loadHtmlString(html);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +67,8 @@ window.addEventListener('DOMContentLoaded', () => {
       params = const PlatformWebViewControllerCreationParams();
     }
 
+
+
     _controller = WebViewController.fromPlatformCreationParams(params);
     _controller 
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -69,12 +77,10 @@ window.addEventListener('DOMContentLoaded', () => {
         onMessageReceived: (JavaScriptMessage msg) {
           print("JS says: ${msg.message}");
         },
-      )
-      ..loadHtmlString(_html);
+      );
 
-    /*_controller
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://flutter.dev'));*/
+    loadHtmlFromAssets();
+
   }
 
   @override
