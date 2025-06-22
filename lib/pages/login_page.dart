@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/loopback.dart';
+import 'package:lightify/utilities/spotify_auth.dart';
+import 'package:provider/provider.dart';
 
 final Uri url = Uri.parse(
   'https://accounts.spotify.com/authorize?client_id=3c3d7b0f935849bf82a7ce3153e1581b&response_type=code&redirect_uri=http://127.0.0.1:3434&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state',
@@ -23,6 +27,19 @@ class LoginPage extends StatelessWidget {
               String code = result.toString().split("code=").last;
 
               debugPrint(code);
+
+              String token = await debugRequestToken(code);
+              debugPrint("received token: $token");
+              if(context.mounted) {
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+                final storage = FlutterSecureStorage();
+                await storage.write(key: "token", value: token);
+
+                authProvider.setToken(token);
+                authProvider.setIsAuthenticated(true);
+
+              }
             },
 
             style: const ButtonStyle(

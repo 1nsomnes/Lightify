@@ -32,6 +32,7 @@ class InitializationPage extends StatelessWidget {
       if (result == AuthError.invalid) {
         authProvider.setIsAuthenticated(false);
       } else if (result == AuthError.valid) {
+        
         authProvider.setIsAuthenticated(true);
         authProvider.setToken(token);
       } else {

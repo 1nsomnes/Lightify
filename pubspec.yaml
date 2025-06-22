@@ -41,6 +41,7 @@ dependencies:
   spotify_sdk: ^3.0.2
   webview_flutter: ^4.13.0
   webview_flutter_wkwebview: ^3.22.0
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +67,7 @@ flutter:
 
   assets:
     - assets/player.html
+    - .env
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
