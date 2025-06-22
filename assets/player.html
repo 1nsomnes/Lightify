@@ -28,7 +28,6 @@
     }
     window.addEventListener('DOMContentLoaded', () => {
       playBeep();
-      console.log("test")
     });
 
 
@@ -37,7 +36,7 @@
 
       console.log("current token = " + token)
       const player = new Spotify.Player({
-        name: 'Web Playback SDK Quick Start Player',
+        name: 'Lightify',
         getOAuthToken: cb => {cb(token);},
         volume: 1
       });
@@ -45,6 +44,7 @@
 
       player.addListener('ready', ({device_id}) => {
         console.log("ready with id " + device_id)
+        window.spotifyPlayer = player;
       });
 
       player.addListener('not_ready', ({device_id}) => {
@@ -62,11 +62,16 @@
         console.error(message);
       });
 
-      document.getElementById('togglePlay').onclick = function () {
+      /*document.getElementById('togglePlay').onclick = function () {
         player.togglePlay();
-      };
+      };*/
 
       player.connect();
+    }
+
+    function togglePlayback() {
+      console.log("Toggling Play")
+      window.spotifyPlayer.togglePlay();
     }
   </script>
 </head>

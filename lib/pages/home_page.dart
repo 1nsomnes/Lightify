@@ -68,7 +68,8 @@ class _HomePageState extends State<HomePage> {
               child: ElevatedButton(
                 onPressed: () {
                   // 1) call the JS function with an argument
-                  _controller.runJavaScript("sayHello('Flutter Dev');");
+                  //_controller.runJavaScript("sayHello('Flutter Dev');");
+                  _controller.runJavaScript("togglePlayback();");
                 },
                 child: const Text('Call JS sayHello()'),
               ),
