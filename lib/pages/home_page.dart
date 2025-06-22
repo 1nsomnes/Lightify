@@ -15,9 +15,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
 
-  Future<void> loadHtmlFromAssets() async {
-    final html = await rootBundle.loadString('assets/player.html');
-    _controller.loadHtmlString(html);
+  Future<void> loadHtmlFromAssets(BuildContext context) async {
+    String html = await rootBundle.loadString('assets/player.html');
+    if (context.mounted) {
+      html = html.replaceAll("{token}", Provider.of<AuthProvider>(context, listen: false).getToken);
+      _controller.loadHtmlString(html);
+    }
   }
 
   @override
@@ -38,17 +41,16 @@ class _HomePageState extends State<HomePage> {
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setOnConsoleMessage((JavaScriptConsoleMessage msg) {
-        // You can see msg.message, msg.lineNumber, msg.sourceURL, msg.messageLevel, etc.
         debugPrint('[WebView][JS:${msg.level}] ${msg.message} ');
       })
       ..addJavaScriptChannel(
         'FlutterHost',
         onMessageReceived: (JavaScriptMessage msg) {
-          print("JS says: ${msg.message}");
+          debugPrint("JS says: ${msg.message}");
         },
       );
 
-    loadHtmlFromAssets();
+    loadHtmlFromAssets(context);
   }
 
   @override

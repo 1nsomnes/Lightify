@@ -14,6 +14,7 @@ void main() {
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
   }
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => AuthProvider(),
