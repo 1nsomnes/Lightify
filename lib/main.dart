@@ -18,8 +18,7 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (context) => AuthProvider(),
-      //child: const MyApp(),
-      child: const HomePage(),
+      child: const MyApp(),
     ),
   );
 }
