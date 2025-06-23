@@ -60,14 +60,14 @@
         duration,
         track_window: {current_track}
       }) => {
+        current_track["position_ms"] = position;
+        return_object = {
+          func: "updateData",
+          body: current_track
+        };
+        FlutterHost.postMessage(JSON.stringify(return_object));
         console.log('Currently Playing', current_track);
-        console.log('Position in Song', position);
-        console.log('Duration of Song', duration);
       });
-
-      /*document.getElementById('togglePlay').onclick = function () {
-        player.togglePlay();
-      };*/
 
       player.connect();
     }
@@ -79,17 +79,13 @@
 
     function next() {
       console.log("Skipping song")
-      window.spotifyPlayer.nextTrack().then(() => {
-        FlutterHost.postMessage("updateData");
-      });
+      window.spotifyPlayer.nextTrack();
 
     }
 
     function previous() {
       console.log("Going back a song")
-      window.spotifyPlayer.previousTrack().then(() => {
-        FlutterHost.postMessage("updateData");
-      });
+      window.spotifyPlayer.previousTrack();
     }
 
   </script>

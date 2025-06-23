@@ -53,28 +53,28 @@ class _HomePageState extends State<HomePage> {
       ..addJavaScriptChannel(
         'FlutterHost',
         onMessageReceived: (JavaScriptMessage msg) {
-          if (msg.message == "updateData") {
-            debugPrint("received message");
-            _updateData();
+          debugPrint("Received following message: ${msg.message}");
+          final json = jsonDecode(msg.message);
+
+          //debugPrint("Received following command: " + json['func']);
+
+          if (json['func'] == "updateData") {
+            _updateData(json["body"]);
           }
         },
       );
 
     loadHtmlFromAssets(context);
-    _updateData();
   }
 
-  void _updateData() {
-    getPlaybackState(context).then((response) {
-      //debugPrint(response.body);
-      final json = jsonDecode(response.body);
-
-      setState(() {
-        artist = json["item"]["name"];
-        song = json["item"]["artists"][0]["name"];
-        imgurl = json["item"]["album"]["images"][1]["url"];
-      });
+  void _updateData(dynamic json) {
+    setState(() {
+      //TODO: investigate better error handling
+      artist = json["artists"][0]["name"];
+      song = json["name"];
+      imgurl = json["album"]["images"][2]["url"];
     });
+    return;
   }
 
   void _togglePlay() {
