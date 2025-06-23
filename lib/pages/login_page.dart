@@ -16,6 +16,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
           child: ElevatedButton(
@@ -30,15 +31,17 @@ class LoginPage extends StatelessWidget {
 
               String token = await debugRequestToken(code);
               debugPrint("received token: $token");
-              if(context.mounted) {
-                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              if (context.mounted) {
+                final authProvider = Provider.of<AuthProvider>(
+                  context,
+                  listen: false,
+                );
 
                 final storage = FlutterSecureStorage();
                 await storage.write(key: "token", value: token);
 
                 authProvider.setToken(token);
                 authProvider.setIsAuthenticated(true);
-
               }
             },
 

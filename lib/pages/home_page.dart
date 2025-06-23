@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/components/circle_buttons.dart';
@@ -51,14 +53,27 @@ class _HomePageState extends State<HomePage> {
       ..addJavaScriptChannel(
         'FlutterHost',
         onMessageReceived: (JavaScriptMessage msg) {
-          debugPrint("JS says: ${msg.message}");
+          if (msg.message == "updateData") {
+            debugPrint("received message");
+            _updateData();
+          }
         },
       );
 
     loadHtmlFromAssets(context);
+    _updateData();
+  }
 
-    getPlaybackState(context).then((response ) {
-      debugPrint(response.body);
+  void _updateData() {
+    getPlaybackState(context).then((response) {
+      //debugPrint(response.body);
+      final json = jsonDecode(response.body);
+
+      setState(() {
+        artist = json["item"]["name"];
+        song = json["item"]["artists"][0]["name"];
+        imgurl = json["item"]["album"]["images"][1]["url"];
+      });
     });
   }
 
@@ -74,45 +89,73 @@ class _HomePageState extends State<HomePage> {
     _controller.runJavaScript("previous();");
   }
 
+  String song = "Unkown Song";
+  String artist = "Unkown Artist";
+  String imgurl = "null";
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      home: Center(
-        child: Column(
-          children: [
-            SizedBox.fromSize(
-              size: Size.zero,
-              child: WebViewWidget(controller: _controller),
-            ),
-            Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                buildCircleButton(
-                  icon: Icons.skip_previous,
-                  onPressed: _prev,
-                  size: 40,
-                  backgroundColor: Colors.grey[700]!,
-                ),
-                SizedBox(width: 20),
-                buildCircleButton(
-                  icon: Icons.play_arrow,
-                  onPressed: _togglePlay,
-                  size: 40,
-                  backgroundColor: Colors.blue,
-                ),
-                SizedBox(width: 20),
-                buildCircleButton(
-                  icon: Icons.skip_next,
-                  onPressed: _next,
-                  size: 40,
-                  backgroundColor: Colors.grey[700]!,
-                ),
-              ],
-            ),
-          ],
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            children: [
+              SizedBox.fromSize(
+                size: Size.zero,
+                child: WebViewWidget(controller: _controller),
+              ),
+              Row(
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    color: imgurl == "null" ? Colors.blue : null,
+                    decoration: imgurl != "null"
+                        ? BoxDecoration(
+                            image: DecorationImage(image: NetworkImage(imgurl)),
+                          )
+                        : null,
+                    margin: EdgeInsets.all(20),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(song, style: TextStyle(fontSize: 16)),
+                        Text(artist, style: TextStyle(fontSize: 12)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            buildCircleButton(
+                              icon: Icons.skip_previous,
+                              onPressed: _prev,
+                              size: 40,
+                              backgroundColor: Colors.grey[700]!,
+                            ),
+                            SizedBox(width: 20),
+                            buildCircleButton(
+                              icon: Icons.play_arrow,
+                              onPressed: _togglePlay,
+                              size: 40,
+                              backgroundColor: Colors.blue,
+                            ),
+                            SizedBox(width: 20),
+                            buildCircleButton(
+                              icon: Icons.skip_next,
+                              onPressed: _next,
+                              size: 40,
+                              backgroundColor: Colors.grey[700]!,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -19,13 +19,6 @@
       osc.stop(ctx.currentTime + 0.2); // play for 0.2 seconds
     }
 
-    function sayHello(name) {
-      document.body.innerHTML = "<h1>Hello, " + name + "!</h1>";
-      // send a message back to Flutter
-      FlutterHost.postMessage("Greeted " + name);
-
-      playBeep();
-    }
     window.addEventListener('DOMContentLoaded', () => {
       playBeep();
     });
@@ -62,6 +55,16 @@
         console.error(message);
       });
 
+      player.addListener('player_state_changed', ({
+        position,
+        duration,
+        track_window: {current_track}
+      }) => {
+        console.log('Currently Playing', current_track);
+        console.log('Position in Song', position);
+        console.log('Duration of Song', duration);
+      });
+
       /*document.getElementById('togglePlay').onclick = function () {
         player.togglePlay();
       };*/
@@ -76,21 +79,21 @@
 
     function next() {
       console.log("Skipping song")
-      window.spotifyPlayer.nextTrack();
+      window.spotifyPlayer.nextTrack().then(() => {
+        FlutterHost.postMessage("updateData");
+      });
+
     }
 
     function previous() {
       console.log("Going back a song")
-      window.spotifyPlayer.previousTrack();
+      window.spotifyPlayer.previousTrack().then(() => {
+        FlutterHost.postMessage("updateData");
+      });
     }
 
   </script>
 </head>
 
-<body>
-  <h1>Waiting...</h1>
-
-  <button id="togglePlay">Toggle Play</button>
-</body>
 
 </html>
