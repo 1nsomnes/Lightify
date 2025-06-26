@@ -1,10 +1,9 @@
-import "dart:collection";
+import "dart:convert";
 
+import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:http/http.dart" as http;
-import "package:lightify/providers/auth_provider.dart";
-import "package:provider/provider.dart";
 
 Future<http.Response> getPlaybackStateByToken(String token) async {
   final uri = Uri.parse('https://api.spotify.com/v1/me/player');
@@ -23,13 +22,12 @@ Future<http.Response> searchSpotify(
   int offset,
   String token,
 ) async {
-
   final url = Uri.parse("https://api.spotify.com/v1/search").replace(
     queryParameters: {
       "q": query,
       "type": "track",
       "limit": limit.toString(),
-      "offset": limit.toString(),
+      "offset": offset.toString(),
     },
   );
 
@@ -42,4 +40,30 @@ Future<http.Response> searchSpotify(
   );
 
   return response;
+}
+
+Future<void> playSongs(
+  List<String> uris,
+  String token, {
+  String deviceId = "",
+}) async {
+  Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
+  if (deviceId.isNotEmpty) {
+    url = url.replace(queryParameters: {"device_id": deviceId});
+  }
+
+  final Map<String, dynamic> payload = {"uris": uris};
+
+  final response = await http.put(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(payload)
+  );
+
+  
+  debugPrint(response.body.toString());
+
 }

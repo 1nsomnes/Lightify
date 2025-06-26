@@ -19,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
+  String deviceId = "";
 
   Future<void> loadHtmlFromAssets(BuildContext context) async {
     String html = await rootBundle.loadString('assets/player.html');
@@ -59,8 +60,13 @@ class _HomePageState extends State<HomePage> {
 
           //debugPrint("Received following command: " + json['func']);
 
-          if (json['func'] == "updateData") {
-            _updateData(json["body"]);
+          switch (json['func']) {
+            case "updateData":
+              _updateData(json["body"]);
+            case "setDeviceId":
+              setState(() {
+                deviceId = json["body"]["device_id"];
+              });
           }
         },
       );
@@ -155,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              Search(token: Provider.of<AuthProvider>(context).getToken)
+              Search(token: Provider.of<AuthProvider>(context).getToken, deviceId: deviceId),
             ],
           ),
         ),

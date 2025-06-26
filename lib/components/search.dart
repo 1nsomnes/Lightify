@@ -7,9 +7,10 @@ import 'package:lightify/utilities/spotify.dart';
 import 'package:provider/provider.dart';
 
 class Search extends StatefulWidget {
-  const Search({super.key, required this.token});
+  const Search({super.key, required this.token, required this.deviceId});
 
   final String token;
+  final String deviceId;
 
   @override
   State<Search> createState() => _SearchState();
@@ -45,12 +46,10 @@ class _SearchState extends State<Search> {
 
       for (dynamic track in tracks) {
         Map<String, String> values = Map<String, String>();
-        debugPrint("TRACK!!");
-        debugPrint(track.toString());
-        debugPrint(track["album"]["images"].toString());
         values["name"] = track["name"];
         values["artist"] = track["artists"][0]["name"];
-        values["url"] = track["album"]["images"][2]["url"];
+        values["imgUrl"] = track["album"]["images"][2]["url"];
+        values["ctxUri"] = track["uri"];
 
         _results.add(values);
       }
@@ -101,7 +100,7 @@ class _SearchState extends State<Search> {
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: Image.network(
-                        info['url'] as String,
+                        info['imgUrl'] as String,
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
@@ -111,7 +110,7 @@ class _SearchState extends State<Search> {
                     title: Text(info["name"]),
                     subtitle: Text(info["artist"]),
                     onTap: () {
-                      // do something with item
+                      playSongs([info["ctxUri"]], widget.token, deviceId: widget.deviceId);
                     },
                   );
                 },
