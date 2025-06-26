@@ -7,8 +7,17 @@ class MainFlutterWindow: NSWindow {
     let windowFrame = self.frame
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
+    
+    self.titlebarAppearsTransparent = true
+    self.titleVisibility = .hidden
+
+    self.styleMask.insert(.fullSizeContentView)
+
+    self.isMovableByWindowBackground = true
+    self.titlebarAppearsTransparent = true
 
 
+    //TODO: possibly remove this?
     hasShadow = false
 
     // 3️⃣ Make the title bar transparent so you can drag by background
