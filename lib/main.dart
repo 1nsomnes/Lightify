@@ -10,6 +10,7 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
+
 class BlurWindowListener with WindowListener {
   @override
   void onWindowBlur() {
@@ -53,7 +54,6 @@ void main() async {
   );
 
   windowManager.addListener(BlurWindowListener());
-
 
   // RUN THE APPLICATION
   runApp(

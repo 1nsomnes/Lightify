@@ -19,6 +19,7 @@ class MainFlutterWindow: NSWindow {
         self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)))
         self.collectionBehavior.insert([.canJoinAllSpaces, .fullScreenAuxiliary])
 
+
         //TODO: possibly remove this?
         hasShadow = false
 
@@ -34,5 +35,17 @@ class MainFlutterWindow: NSWindow {
         RegisterGeneratedPlugins(registry: flutterViewController)
 
         super.awakeFromNib()
+    }
+    override func close() {
+        super.close()
+        NSApp.hide(self)  // hides app & returns focus to previous app :contentReference[oaicite:0]{index=0} (thanks chat GPT!)
+    }
+
+    override func resignKey() {
+        close()
+    }
+
+    override func cancelOperation(_ sender: Any?) {
+        close()
     }
 }
