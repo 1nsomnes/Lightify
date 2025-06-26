@@ -36,17 +36,21 @@ class _SearchState extends State<Search> {
   }
 
   void _populateResults(String query) async {
-    final response = await searchSpotify(query, 10, 10, widget.token);
+    final response = await searchSpotify(query, 20, 0, widget.token);
     final json = jsonDecode(response.body);
     setState(() {
       _results.clear();
-      debugPrint(json["tracks"]["items"].toString());
+      //debugPrint(json["tracks"]["items"].toString());
       List<dynamic> tracks = json["tracks"]["items"];
 
       for (dynamic track in tracks) {
         Map<String, String> values = Map<String, String>();
+        debugPrint("TRACK!!");
+        debugPrint(track.toString());
+        debugPrint(track["album"]["images"].toString());
         values["name"] = track["name"];
         values["artist"] = track["artists"][0]["name"];
+        values["url"] = track["album"]["images"][2]["url"];
 
         _results.add(values);
       }
@@ -77,7 +81,9 @@ class _SearchState extends State<Search> {
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.search),
               hintText: 'Type to search…',
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
             ),
           ),
         ),
@@ -92,6 +98,16 @@ class _SearchState extends State<Search> {
                 itemBuilder: (context, dynamic i) {
                   dynamic info = _results[i];
                   return ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.network(
+                        info['url'] as String,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(Icons.broken_image),
+                      ),
+                    ),
                     title: Text(info["name"]),
                     subtitle: Text(info["artist"]),
                     onTap: () {
