@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,12 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-  final _controller = TextEditingController();
+  final FocusNode _keyNode = FocusNode();
+  final FocusNode _searchNode = FocusNode();
+  final ScrollController _scroll = ScrollController();
+  int _selected = -1;
+
+  final _textController = TextEditingController();
   Timer? _debounce;
   bool _isLoading = false;
   List<Map<String, String>> _results = [];
@@ -25,15 +31,48 @@ class _SearchState extends State<Search> {
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onSearchChanged);
+    _textController.addListener(_onSearchChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-    _controller.removeListener(_onSearchChanged);
-    _controller.dispose();
+    _textController.removeListener(_onSearchChanged);
+    _textController.dispose();
     super.dispose();
+  }
+
+  void _onKey(KeyEvent e) {
+    if(e is! KeyDownEvent) return;
+    final lk = e.logicalKey;
+    if (lk == LogicalKeyboardKey.keyJ) {
+      debugPrint("got J");
+      setState(() {
+        _selected = (_selected + 1).clamp(0, _results.length - 1);
+      });
+      _scroll.animateTo(
+        _selected * 56.0,
+        duration: Duration(milliseconds: 100),
+        curve: Curves.ease,
+      );
+    } else if (lk == LogicalKeyboardKey.keyK) {
+      debugPrint("got K");
+      setState(() {
+        _selected = (_selected - 1).clamp(0, _results.length - 1);
+      });
+      _scroll.animateTo(
+        _selected * 56.0,
+        duration: Duration(milliseconds: 100),
+        curve: Curves.ease,
+      );
+    } else if (lk == LogicalKeyboardKey.keyS) {
+      setState(() => _selected = -1);
+      _searchNode.requestFocus();
+    }
   }
 
   void _populateResults(String query) async {
@@ -45,7 +84,7 @@ class _SearchState extends State<Search> {
       List<dynamic> tracks = json["tracks"]["items"];
 
       for (dynamic track in tracks) {
-        Map<String, String> values = Map<String, String>();
+        Map<String, String> values = <String, String>{};
         values["name"] = track["name"];
         values["artist"] = track["artists"][0]["name"];
         values["imgUrl"] = track["album"]["images"][2]["url"];
@@ -59,7 +98,7 @@ class _SearchState extends State<Search> {
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () async {
-      final query = _controller.text.trim();
+      final query = _textController.text.trim();
       debugPrint("searching");
       if (query.isNotEmpty) {
         _populateResults(query);
@@ -76,7 +115,14 @@ class _SearchState extends State<Search> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
-            controller: _controller,
+            focusNode: _searchNode,
+            controller: _textController,
+            onSubmitted: (val) {
+              _keyNode.requestFocus();
+              setState(() {
+                _selected = 0;
+              });
+            },
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.search),
               hintText: 'Type to search…',
@@ -86,37 +132,48 @@ class _SearchState extends State<Search> {
             ),
           ),
         ),
-        Builder(
-          builder: (BuildContext ctx) {
-            if (_results.isEmpty) return const SizedBox.shrink();
+        KeyboardListener(
+          focusNode: _keyNode,
+          onKeyEvent: _onKey,
+          child: Builder(
+            builder: (BuildContext ctx) {
+              if (_results.isEmpty) return const SizedBox.shrink();
 
-            return SizedBox(
-              height: 300,
-              child: ListView.builder(
-                itemCount: _results.length,
-                itemBuilder: (context, dynamic i) {
-                  dynamic info = _results[i];
-                  return ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        info['imgUrl'] as String,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(Icons.broken_image),
+              return SizedBox(
+                height: 350,
+                child: ListView.builder(
+                  controller: _scroll,
+                  itemCount: _results.length,
+                  itemBuilder: (context, dynamic i) {
+                    dynamic info = _results[i];
+                    return ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.network(
+                          info['imgUrl'] as String,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              Icon(Icons.broken_image),
+                        ),
                       ),
-                    ),
-                    title: Text(info["name"]),
-                    subtitle: Text(info["artist"]),
-                    onTap: () {
-                      playSongs([info["ctxUri"]], widget.token, deviceId: widget.deviceId);
-                    },
-                  );
-                },
-              ),
-            );
-          },
+                      selected: i == _selected,
+                      title: Text(info["name"]),
+                      subtitle: Text(info["artist"]),
+                      onTap: () {
+                        playSongs(
+                          [info["ctxUri"]],
+                          widget.token,
+                          deviceId: widget.deviceId,
+                        );
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ],
     );

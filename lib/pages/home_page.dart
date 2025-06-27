@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage> {
       ..addJavaScriptChannel(
         'FlutterHost',
         onMessageReceived: (JavaScriptMessage msg) {
-          debugPrint("Received following message: ${msg.message}");
+          //debugPrint("Received following message: ${msg.message}");
           final json = jsonDecode(msg.message);
 
           //debugPrint("Received following command: " + json['func']);

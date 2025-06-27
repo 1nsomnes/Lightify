@@ -15,10 +15,12 @@ class MainFlutterWindow: NSWindow {
 
         self.isMovableByWindowBackground = true
         self.titlebarAppearsTransparent = true
+        
+        //TODO: Still doesn't work over YouTube videos, but when would you be listening to music over youtube, right? idk
+        self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)))
+        self.orderFrontRegardless()
 
-        self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)))
         self.collectionBehavior.insert([.canJoinAllSpaces, .fullScreenAuxiliary])
-
 
         //TODO: possibly remove this?
         hasShadow = false
