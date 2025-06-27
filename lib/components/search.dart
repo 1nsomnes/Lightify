@@ -15,6 +15,7 @@ class Search extends StatefulWidget {
     required this.skip,
     required this.prev,
     required this.pause,
+    required this.setPlaying,
   });
 
   final String token;
@@ -23,6 +24,8 @@ class Search extends StatefulWidget {
   final Function skip;
   final Function prev;
   final Function pause;
+
+  final Function setPlaying;
 
   @override
   State<Search> createState() => _SearchState();
@@ -104,6 +107,7 @@ class _SearchState extends State<Search> {
           var ctxUri = _results[_selected]["ctxUri"];
           if (ctxUri != null) {
             playSongs([ctxUri], widget.token, deviceId: widget.deviceId);
+            widget.setPlaying(true);
           }
         }
 
@@ -199,13 +203,6 @@ class _SearchState extends State<Search> {
                       selected: i == _selected,
                       title: Text(info["name"]),
                       subtitle: Text(info["artist"]),
-                      onTap: () {
-                        playSongs(
-                          [info["ctxUri"]],
-                          widget.token,
-                          deviceId: widget.deviceId,
-                        );
-                      },
                     );
                   },
                 ),

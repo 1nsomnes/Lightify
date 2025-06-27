@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
-import 'package:lightify/utilities/load_hotkeys.dart';
-import 'package:lightify/utilities/spotify.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -86,6 +84,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _togglePlay() {
+    setState(() {
+      isPlaying = !isPlaying;
+    });
     _controller.runJavaScript("togglePlayback();");
   }
 
@@ -97,9 +98,16 @@ class _HomePageState extends State<HomePage> {
     _controller.runJavaScript("previous();");
   }
 
+  void _setPlaying(bool val) {
+    setState(() {
+      isPlaying = val;
+    });
+  }
+
   String song = "Unkown Song";
   String artist = "Unkown Artist";
   String imgurl = "null";
+  bool isPlaying = false;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(width: 20),
                             buildCircleButton(
-                              icon: Icons.play_arrow,
+                              icon: isPlaying ? Icons.pause : Icons.play_arrow,
                               onPressed: _togglePlay,
                               size: 40,
                               backgroundColor: Colors.blue,
@@ -168,6 +176,7 @@ class _HomePageState extends State<HomePage> {
                 pause: _togglePlay,
                 prev: _prev,
                 skip: _next,
+                setPlaying: _setPlaying
               ),
             ],
           ),
