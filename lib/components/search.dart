@@ -32,7 +32,6 @@ class _SearchState extends State<Search> {
   void initState() {
     super.initState();
     _textController.addListener(_onSearchChanged);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchNode.requestFocus();
     });
@@ -46,8 +45,8 @@ class _SearchState extends State<Search> {
     super.dispose();
   }
 
-  void _onKey(KeyEvent e) {
-    if (e is! KeyDownEvent) return;
+  KeyEventResult _onKey(FocusNode node, KeyEvent e) {
+    if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
 
     switch (lk) {
@@ -92,8 +91,9 @@ class _SearchState extends State<Search> {
         }
 
       default:
-        break;
+        return KeyEventResult.ignored;
     }
+    return KeyEventResult.handled;
   }
 
   void _populateResults(String query) async {
@@ -153,7 +153,7 @@ class _SearchState extends State<Search> {
             ),
           ),
         ),
-        KeyboardListener(
+        Focus(
           focusNode: _keyNode,
           onKeyEvent: _onKey,
           child: Builder(
