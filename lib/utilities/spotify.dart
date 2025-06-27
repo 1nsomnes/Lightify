@@ -60,10 +60,27 @@ Future<void> playSongs(
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     },
-    body: jsonEncode(payload)
+    body: jsonEncode(payload),
   );
 
+  debugPrint(response.body.toString());
+}
+
+Future<void> queue(String uri, String token, {String deviceId = ""}) async {
+  Uri url = Uri.parse("https://api.spotify.com/v1/me/player/queue");
+  if (deviceId.isNotEmpty) {
+    url = url.replace(queryParameters: {"uri": uri, "device_id": deviceId});
+  } else {
+    url = url.replace(queryParameters: {"uri": uri});
+  }
+
+
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
   
   debugPrint(response.body.toString());
-
 }

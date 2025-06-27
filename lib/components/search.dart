@@ -51,6 +51,7 @@ class _SearchState extends State<Search> {
     final lk = e.logicalKey;
 
     switch (lk) {
+      case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
         setState(() {
           _selected = (_selected + 1).clamp(0, _results.length - 1);
@@ -60,6 +61,8 @@ class _SearchState extends State<Search> {
           duration: Duration(milliseconds: 100),
           curve: Curves.ease,
         );
+
+      case LogicalKeyboardKey.arrowUp:
       case LogicalKeyboardKey.keyK:
         setState(() {
           _selected = (_selected - 1).clamp(0, _results.length - 1);
@@ -72,6 +75,14 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyS:
         setState(() => _selected = -1);
         _searchNode.requestFocus();
+
+      case LogicalKeyboardKey.keyQ:
+        if (_selected >= 0 && _selected < _results.length) {
+          var ctxUri = _results[_selected]["ctxUri"];
+          if (ctxUri != null) {
+            queue(ctxUri, widget.token);
+          }
+        }
       case LogicalKeyboardKey.enter:
         if (_selected >= 0 && _selected < _results.length) {
           var ctxUri = _results[_selected]["ctxUri"];
