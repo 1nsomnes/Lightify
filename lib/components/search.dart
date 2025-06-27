@@ -8,10 +8,21 @@ import 'package:lightify/utilities/spotify.dart';
 import 'package:provider/provider.dart';
 
 class Search extends StatefulWidget {
-  const Search({super.key, required this.token, required this.deviceId});
+  const Search({
+    super.key,
+    required this.token,
+    required this.deviceId,
+    required this.skip,
+    required this.prev,
+    required this.pause,
+  });
 
   final String token;
   final String deviceId;
+
+  final Function skip;
+  final Function prev;
+  final Function pause;
 
   @override
   State<Search> createState() => _SearchState();
@@ -82,6 +93,12 @@ class _SearchState extends State<Search> {
             queue(ctxUri, widget.token);
           }
         }
+      case LogicalKeyboardKey.space:
+        widget.pause();
+      case LogicalKeyboardKey.keyP:
+        widget.prev();
+      case LogicalKeyboardKey.keyN:
+        widget.skip();
       case LogicalKeyboardKey.enter:
         if (_selected >= 0 && _selected < _results.length) {
           var ctxUri = _results[_selected]["ctxUri"];

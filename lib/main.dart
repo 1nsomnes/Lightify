@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
+import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -18,15 +19,6 @@ class BlurWindowListener with WindowListener {
   }
 }
 
-Future<void> _toggleWindow() async {
-  final isVisible = await windowManager.isVisible();
-  if (isVisible) {
-    await windowManager.hide();
-  } else {
-    await windowManager.show();
-    await windowManager.focus();
-  }
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,19 +31,8 @@ void main() async {
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
   }
-
-  HotKey hotKey = HotKey(
-    key: PhysicalKeyboardKey.keyS,
-    modifiers: [HotKeyModifier.meta, HotKeyModifier.shift],
-    scope: HotKeyScope.system, // Set as inapp-wide hotkey.
-  );
-
-  await hotKeyManager.register(
-    hotKey,
-    keyDownHandler: (hotKey) {
-      _toggleWindow();
-    },
-  );
+  
+  LoadHotKeys.loadHotKeys();
 
   windowManager.addListener(BlurWindowListener());
 
