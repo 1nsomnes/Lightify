@@ -47,31 +47,41 @@ class _SearchState extends State<Search> {
   }
 
   void _onKey(KeyEvent e) {
-    if(e is! KeyDownEvent) return;
+    if (e is! KeyDownEvent) return;
     final lk = e.logicalKey;
-    if (lk == LogicalKeyboardKey.keyJ) {
-      debugPrint("got J");
-      setState(() {
-        _selected = (_selected + 1).clamp(0, _results.length - 1);
-      });
-      _scroll.animateTo(
-        _selected * 56.0,
-        duration: Duration(milliseconds: 100),
-        curve: Curves.ease,
-      );
-    } else if (lk == LogicalKeyboardKey.keyK) {
-      debugPrint("got K");
-      setState(() {
-        _selected = (_selected - 1).clamp(0, _results.length - 1);
-      });
-      _scroll.animateTo(
-        _selected * 56.0,
-        duration: Duration(milliseconds: 100),
-        curve: Curves.ease,
-      );
-    } else if (lk == LogicalKeyboardKey.keyS) {
-      setState(() => _selected = -1);
-      _searchNode.requestFocus();
+
+    switch (lk) {
+      case LogicalKeyboardKey.keyJ:
+        setState(() {
+          _selected = (_selected + 1).clamp(0, _results.length - 1);
+        });
+        _scroll.animateTo(
+          _selected * 56.0,
+          duration: Duration(milliseconds: 100),
+          curve: Curves.ease,
+        );
+      case LogicalKeyboardKey.keyK:
+        setState(() {
+          _selected = (_selected - 1).clamp(0, _results.length - 1);
+        });
+        _scroll.animateTo(
+          _selected * 56.0,
+          duration: Duration(milliseconds: 100),
+          curve: Curves.ease,
+        );
+      case LogicalKeyboardKey.keyS:
+        setState(() => _selected = -1);
+        _searchNode.requestFocus();
+      case LogicalKeyboardKey.enter:
+        if (_selected >= 0 && _selected < _results.length) {
+          var ctxUri = _results[_selected]["ctxUri"];
+          if (ctxUri != null) {
+            playSongs([ctxUri], widget.token, deviceId: widget.deviceId);
+          }
+        }
+
+      default:
+        break;
     }
   }
 
