@@ -38,6 +38,7 @@ class _SearchState extends State<Search> {
   int _selected = -1;
 
   final _textController = TextEditingController();
+  String _lastQuery = "";
   Timer? _debounce;
   bool _isLoading = false;
   List<Map<String, String>> _results = [];
@@ -118,11 +119,13 @@ class _SearchState extends State<Search> {
   }
 
   void _populateResults(String query) async {
+    setState(() {
+      _results.clear();
+    });
+
     final response = await searchSpotify(query, 20, 0, widget.token);
     final json = jsonDecode(response.body);
     setState(() {
-      _results.clear();
-      //debugPrint(json["tracks"]["items"].toString());
       List<dynamic> tracks = json["tracks"]["items"];
 
       for (dynamic track in tracks) {
@@ -137,9 +140,7 @@ class _SearchState extends State<Search> {
     });
   }
 
-  void _onSearchChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
+  void _search() async {
       final query = _textController.text.trim();
       debugPrint("searching");
       if (query.isNotEmpty) {
@@ -147,7 +148,22 @@ class _SearchState extends State<Search> {
       } else {
         setState(() => _results.clear());
       }
-    });
+  }
+
+  void _flushDebounce() {
+    if (_debounce?.isActive ?? true) {
+      _debounce!.cancel();
+      _search();
+    }
+  }
+
+  void _onSearchChanged() {
+    String curr = _textController.text;
+    if(curr != _lastQuery) {
+      _lastQuery = curr; 
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), _search);
+    }
   }
 
   @override
@@ -160,6 +176,7 @@ class _SearchState extends State<Search> {
             focusNode: _searchNode,
             controller: _textController,
             onSubmitted: (val) {
+              _flushDebounce();
               _keyNode.requestFocus();
               setState(() {
                 _selected = 0;
