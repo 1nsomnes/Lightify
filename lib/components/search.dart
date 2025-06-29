@@ -31,17 +31,23 @@ class Search extends StatefulWidget {
   State<Search> createState() => _SearchState();
 }
 
+enum SearchKind { playlist, track, album }
+
 class _SearchState extends State<Search> {
   final FocusNode _keyNode = FocusNode();
   final FocusNode _searchNode = FocusNode();
   final ScrollController _scroll = ScrollController();
   int _selected = -1;
+  SearchKind searchKind = SearchKind.track;
 
   final _textController = TextEditingController();
   String _lastQuery = "";
   Timer? _debounce;
-  bool _isLoading = false;
-  List<Map<String, String>> _results = [];
+  // TODO: maybe add loading when searching?
+  // bool _isLoading = false;
+  final List<Map<String, String>> _tracks = [];
+  final List<Map<String, String>> _playists = [];
+  final List<Map<String, String>> _albums = [];
 
   @override
   void initState() {
@@ -68,7 +74,7 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
         setState(() {
-          _selected = (_selected + 1).clamp(0, _results.length - 1);
+          _selected = (_selected + 1).clamp(0, _tracks.length - 1);
         });
         _scroll.animateTo(
           _selected * 56.0,
@@ -79,7 +85,7 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.arrowUp:
       case LogicalKeyboardKey.keyK:
         setState(() {
-          _selected = (_selected - 1).clamp(0, _results.length - 1);
+          _selected = (_selected - 1).clamp(0, _tracks.length - 1);
         });
         _scroll.animateTo(
           _selected * 56.0,
@@ -91,8 +97,8 @@ class _SearchState extends State<Search> {
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyQ:
-        if (_selected >= 0 && _selected < _results.length) {
-          var ctxUri = _results[_selected]["ctxUri"];
+        if (_selected >= 0 && _selected < _tracks.length) {
+          var ctxUri = _tracks[_selected]["ctxUri"];
           if (ctxUri != null) {
             queue(ctxUri, widget.token);
           }
@@ -103,13 +109,21 @@ class _SearchState extends State<Search> {
         widget.prev();
       case LogicalKeyboardKey.keyN:
         widget.skip();
+
+      case LogicalKeyboardKey.keyA:
+        setState(() {
+          searchKind = SearchKind.album;
+        });
+
+      case LogicalKeyboardKey.keyT:
+        setState(() {
+          searchKind = SearchKind.track;
+        });
       case LogicalKeyboardKey.enter:
-        if (_selected >= 0 && _selected < _results.length) {
-          var ctxUri = _results[_selected]["ctxUri"];
-          if (ctxUri != null) {
-            playSongs([ctxUri], widget.token, deviceId: widget.deviceId);
-            widget.setPlaying(true);
-          }
+        var relevantList = getRelevantList();
+        if (_selected >= 0 && _selected < relevantList.length) {
+          var ctxUri = relevantList[_selected]["ctxUri"];
+          playSelected(ctxUri);
         }
 
       default:
@@ -118,15 +132,50 @@ class _SearchState extends State<Search> {
     return KeyEventResult.handled;
   }
 
+  List<Map<String, String>> getRelevantList() {
+    if (searchKind == SearchKind.album) {
+      return _albums;
+    } else if (searchKind == SearchKind.track) {
+      return _tracks;
+    } else {
+      return _playists;
+    }
+  }
+
+  void playSelected(String? ctxUri) {
+    if (ctxUri != null) {
+      if (ctxUri.split(":")[1] == "track") {
+        playTracks([ctxUri], widget.token, deviceId: widget.deviceId);
+      } else {
+        playPlaylistOrAlbums(ctxUri, widget.token, deviceId: widget.deviceId);
+      }
+
+      widget.setPlaying(true);
+    }
+  }
+
   void _populateResults(String query) async {
     setState(() {
-      _results.clear();
+      _tracks.clear();
+      _playists.clear();
+      _albums.clear();
     });
 
     final response = await searchSpotify(query, 20, 0, widget.token);
     final json = jsonDecode(response.body);
     setState(() {
       List<dynamic> tracks = json["tracks"]["items"];
+      List<dynamic> albums = json["albums"]["items"];
+
+      for (dynamic album in albums) {
+        Map<String, String> values = <String, String>{};
+        values["name"] = album["name"];
+        values["artist"] = album["artists"][0]["name"];
+        values["imgUrl"] = album["images"][2]["url"];
+        values["ctxUri"] = album["uri"];
+
+        _albums.add(values);
+      }
 
       for (dynamic track in tracks) {
         Map<String, String> values = <String, String>{};
@@ -135,19 +184,19 @@ class _SearchState extends State<Search> {
         values["imgUrl"] = track["album"]["images"][2]["url"];
         values["ctxUri"] = track["uri"];
 
-        _results.add(values);
+        _tracks.add(values);
       }
     });
   }
 
   void _search() async {
-      final query = _textController.text.trim();
-      debugPrint("searching");
-      if (query.isNotEmpty) {
-        _populateResults(query);
-      } else {
-        setState(() => _results.clear());
-      }
+    final query = _textController.text.trim();
+    debugPrint("searching");
+    if (query.isNotEmpty) {
+      _populateResults(query);
+    } else {
+      setState(() => _tracks.clear());
+    }
   }
 
   void _flushDebounce() {
@@ -159,8 +208,8 @@ class _SearchState extends State<Search> {
 
   void _onSearchChanged() {
     String curr = _textController.text;
-    if(curr != _lastQuery) {
-      _lastQuery = curr; 
+    if (curr != _lastQuery) {
+      _lastQuery = curr;
       if (_debounce?.isActive ?? false) _debounce!.cancel();
       _debounce = Timer(const Duration(milliseconds: 500), _search);
     }
@@ -196,15 +245,18 @@ class _SearchState extends State<Search> {
           onKeyEvent: _onKey,
           child: Builder(
             builder: (BuildContext ctx) {
-              if (_results.isEmpty) return const SizedBox.shrink();
+              var relevantList = getRelevantList();
+
+
+              if (relevantList.isEmpty) return const SizedBox.shrink();
 
               return SizedBox(
                 height: 350,
                 child: ListView.builder(
                   controller: _scroll,
-                  itemCount: _results.length,
+                  itemCount: relevantList.length,
                   itemBuilder: (context, dynamic i) {
-                    dynamic info = _results[i];
+                    dynamic info = relevantList[i];
                     return ListTile(
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(4),

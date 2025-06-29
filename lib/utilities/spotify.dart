@@ -25,7 +25,7 @@ Future<http.Response> searchSpotify(
   final url = Uri.parse("https://api.spotify.com/v1/search").replace(
     queryParameters: {
       "q": query,
-      "type": "track",
+      "type": "track,album,playlist",
       "limit": limit.toString(),
       "offset": offset.toString(),
     },
@@ -42,7 +42,7 @@ Future<http.Response> searchSpotify(
   return response;
 }
 
-Future<void> playSongs(
+Future<void> playTracks(
   List<String> uris,
   String token, {
   String deviceId = "",
@@ -53,6 +53,31 @@ Future<void> playSongs(
   }
 
   final Map<String, dynamic> payload = {"uris": uris};
+
+  final response = await http.put(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(payload),
+  );
+
+  debugPrint(response.body.toString());
+}
+
+
+Future<void> playPlaylistOrAlbums(
+  String uri,
+  String token, {
+  String deviceId = "",
+}) async {
+  Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
+  if (deviceId.isNotEmpty) {
+    url = url.replace(queryParameters: {"device_id": deviceId});
+  }
+
+  final Map<String, dynamic> payload = {"context_uri": uri};
 
   final response = await http.put(
     url,
