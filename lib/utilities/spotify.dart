@@ -42,7 +42,7 @@ Future<http.Response> searchSpotify(
   return response;
 }
 
-Future<void> playTracks(
+Future<http.Response> playTracks(
   List<String> uris,
   String token, {
   String deviceId = "",
@@ -64,10 +64,12 @@ Future<void> playTracks(
   );
 
   debugPrint(response.body.toString());
+
+  return response;
 }
 
 
-Future<void> playPlaylistOrAlbums(
+Future<http.Response> playPlaylistOrAlbums(
   String uri,
   String token, {
   String deviceId = "",
@@ -89,9 +91,11 @@ Future<void> playPlaylistOrAlbums(
   );
 
   debugPrint(response.body.toString());
+  
+  return response;
 }
 
-Future<void> queue(String uri, String token, {String deviceId = ""}) async {
+Future<http.Response> queue(String uri, String token, {String deviceId = ""}) async {
   Uri url = Uri.parse("https://api.spotify.com/v1/me/player/queue");
   if (deviceId.isNotEmpty) {
     url = url.replace(queryParameters: {"uri": uri, "device_id": deviceId});
@@ -108,4 +112,6 @@ Future<void> queue(String uri, String token, {String deviceId = ""}) async {
   );
   
   debugPrint(response.body.toString());
+
+  return response;
 }

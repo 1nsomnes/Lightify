@@ -3,9 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify.dart';
-import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class Search extends StatefulWidget {
   const Search({
@@ -101,7 +100,9 @@ class _SearchState extends State<Search> {
         if (_selected >= 0 && _selected < _tracks.length) {
           var ctxUri = _tracks[_selected]["ctxUri"];
           if (ctxUri != null) {
-            queue(ctxUri, widget.token);
+            makeNetworkCall(() {
+              return queue(ctxUri, widget.token);
+            });
           }
         }
       case LogicalKeyboardKey.space:
@@ -148,19 +149,45 @@ class _SearchState extends State<Search> {
     }
   }
 
-  void updateAllLists(Function(List<Map<String,String>>) action) {
+  void updateAllLists(Function(List<Map<String, String>>) action) {
     action(_albums);
     action(_tracks);
     action(_playists);
+  }
 
+  // We expect universal handling of some response status codes such as 401.
+  // This method attempts to consolidate them
+  Future<T> makeNetworkCall<T>(
+    Future<http.Response> Function() call, {
+    T Function(String)? process,
+  }) async {
+    http.Response response = await call();
+
+    // authentication error, try to refresh token and call the method again if anything
+    if (response.statusCode == 401) {
+    } else if (response.statusCode == 200) {
+    } else {}
+
+    if (process != null) {
+      return process(response.body);
+    }
+    return null as T;
   }
 
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
-        playTracks([ctxUri], widget.token, deviceId: widget.deviceId);
+        makeNetworkCall(() {
+          return playTracks([ctxUri], widget.token, deviceId: widget.deviceId);
+        });
       } else {
-        playPlaylistOrAlbums(ctxUri, widget.token, deviceId: widget.deviceId);
+        makeNetworkCall(() {
+          return playPlaylistOrAlbums(
+            ctxUri,
+            widget.token,
+            deviceId: widget.deviceId,
+          );
+        });
       }
 
       widget.setPlaying(true);
@@ -169,11 +196,19 @@ class _SearchState extends State<Search> {
 
   void _populateResults(String query) async {
     setState(() {
-      updateAllLists((list) => list.clear()) ;
+      updateAllLists((list) => list.clear());
     });
 
-    final response = await searchSpotify(query, 20, 0, widget.token);
-    final json = jsonDecode(response.body);
+    String body = await makeNetworkCall(
+      () {
+        return searchSpotify(query, 20, 0, widget.token);
+      },
+      process: (String body) {
+        return body;
+      },
+    );
+    final json = jsonDecode(body);
+
     setState(() {
       List<dynamic> tracks = json["tracks"]["items"];
       List<dynamic> albums = json["albums"]["items"];
@@ -257,7 +292,6 @@ class _SearchState extends State<Search> {
           child: Builder(
             builder: (BuildContext ctx) {
               var relevantList = getRelevantList();
-
 
               if (relevantList.isEmpty) return const SizedBox.shrink();
 
