@@ -43,6 +43,7 @@ class _SearchState extends State<Search> {
   final _textController = TextEditingController();
   String _lastQuery = "";
   Timer? _debounce;
+
   // TODO: maybe add loading when searching?
   // bool _isLoading = false;
   final List<Map<String, String>> _tracks = [];
@@ -105,10 +106,15 @@ class _SearchState extends State<Search> {
         }
       case LogicalKeyboardKey.space:
         widget.pause();
-      case LogicalKeyboardKey.keyP:
+      case LogicalKeyboardKey.keyH:
         widget.prev();
-      case LogicalKeyboardKey.keyN:
+      case LogicalKeyboardKey.keyL:
         widget.skip();
+
+      case LogicalKeyboardKey.keyP:
+        setState(() {
+          searchKind = SearchKind.playlist;
+        });
 
       case LogicalKeyboardKey.keyA:
         setState(() {
@@ -142,6 +148,13 @@ class _SearchState extends State<Search> {
     }
   }
 
+  void updateAllLists(Function(List<Map<String,String>>) action) {
+    action(_albums);
+    action(_tracks);
+    action(_playists);
+
+  }
+
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
@@ -156,9 +169,7 @@ class _SearchState extends State<Search> {
 
   void _populateResults(String query) async {
     setState(() {
-      _tracks.clear();
-      _playists.clear();
-      _albums.clear();
+      updateAllLists((list) => list.clear()) ;
     });
 
     final response = await searchSpotify(query, 20, 0, widget.token);
@@ -195,7 +206,7 @@ class _SearchState extends State<Search> {
     if (query.isNotEmpty) {
       _populateResults(query);
     } else {
-      setState(() => _tracks.clear());
+      setState(() => updateAllLists((list) => list.clear()));
     }
   }
 

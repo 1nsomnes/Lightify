@@ -16,6 +16,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+// TODO: Dispose of webview on refresh
+
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   String deviceId = "";
