@@ -14,17 +14,30 @@ class LoadHotKeys {
     }
   }
 
-  static void loadHotKeys() async {
-    HotKey hotKey = HotKey(
+  static void loadHotKeys(Function restart) async {
+    HotKey toggleWindow = HotKey(
       key: PhysicalKeyboardKey.keyS,
       modifiers: [HotKeyModifier.meta, HotKeyModifier.shift],
       scope: HotKeyScope.system, // Set as inapp-wide hotkey.
     );
 
     await hotKeyManager.register(
-      hotKey,
+      toggleWindow,
       keyDownHandler: (hotKey) {
         _toggleWindow();
+      },
+    );
+
+    HotKey restartHotkey = HotKey(
+      key: PhysicalKeyboardKey.keyR,
+      modifiers: [HotKeyModifier.control],
+      scope: HotKeyScope.inapp,
+    );
+
+    await hotKeyManager.register(
+      restartHotkey,
+      keyDownHandler: (_) {
+        restart(); 
       },
     );
   }
@@ -43,7 +56,10 @@ class LoadHotKeys {
       scope: HotKeyScope.inapp,
     );
 
-    await hotKeyManager.register(skipKey, keyDownHandler: (_) => debugPrint("skipped"));
+    await hotKeyManager.register(
+      skipKey,
+      keyDownHandler: (_) => debugPrint("skipped"),
+    );
     await hotKeyManager.register(prevKey, keyDownHandler: (_) => prev);
     await hotKeyManager.register(pauseKey, keyDownHandler: (_) => pause);
   }

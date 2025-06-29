@@ -4,17 +4,37 @@ import 'package:lightify/pages/loading_page.dart';
 import 'package:lightify/pages/login_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
-
-class InitializationPage extends StatelessWidget {
+class InitializationPage extends StatefulWidget {
   const InitializationPage({super.key});
 
-  // returns "false" iff there is a response that is not positive or token authentication error
+  @override
+  State<InitializationPage> createState() => _InitializationPageState();
+}
 
-  // This means there is an unknown error because the API changed, wifi is not working, etc... In which
-  // case we can send the user to a page informing them that some unknown error occurred
+class _InitializationPageState extends State<InitializationPage> {
+  late Future<bool> _future;
+
+  @override
+  void initState() {
+    super.initState();
+
+    LoadHotKeys.loadHotKeys(restart);
+    _runFuture();
+  }
+
+  void _runFuture() {
+    _future = initializeApp(context);
+  }
+
+  void restart() {
+    setState(_runFuture);
+  }
+
+  // returns "false" iff there is a response that is not positive or token authentication error
   Future<bool> initializeApp(BuildContext context) async {
     AuthProvider authProvider;
     if (context.mounted) {
@@ -32,7 +52,6 @@ class InitializationPage extends StatelessWidget {
       if (result == AuthError.invalid) {
         authProvider.setIsAuthenticated(false);
       } else if (result == AuthError.valid) {
-        
         authProvider.setIsAuthenticated(true);
         authProvider.setToken(token);
       } else {
@@ -48,7 +67,7 @@ class InitializationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: initializeApp(context),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return LoadingPage();

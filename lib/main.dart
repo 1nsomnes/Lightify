@@ -32,8 +32,6 @@ void main() async {
     WebViewPlatform.instance = WebKitWebViewPlatform();
   }
   
-  LoadHotKeys.loadHotKeys();
-
   windowManager.addListener(BlurWindowListener());
 
   // RUN THE APPLICATION
