@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lightify/components/window_selection.dart';
 import 'package:lightify/utilities/spotify.dart';
 import 'package:http/http.dart' as http;
 import 'package:lightify/utilities/spotify/process_response.dart';
@@ -268,6 +269,7 @@ class _SearchState extends State<Search> {
             ),
           ),
         ),
+        WindowSelection(screen: searchKind),
         Focus(
           focusNode: _keyNode,
           onKeyEvent: _onKey,

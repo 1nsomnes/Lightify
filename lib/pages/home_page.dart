@@ -17,8 +17,6 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-// TODO: Dispose of webview on refresh
-
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   String deviceId = "";
@@ -74,6 +72,8 @@ class _HomePageState extends State<HomePage> {
       );
 
     loadHtmlFromAssets(context);
+
+    //TODO: get media keys working... 
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
   }
 
