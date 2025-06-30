@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
+import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -73,6 +74,7 @@ class _HomePageState extends State<HomePage> {
       );
 
     loadHtmlFromAssets(context);
+    //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
   }
 
   void _updateData(dynamic json) {

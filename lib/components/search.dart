@@ -102,11 +102,9 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyQ:
         if (_selected >= 0 && _selected < _tracks.length) {
           var ctxUri = _tracks[_selected].ctxUri;
-          if (ctxUri != null) {
-            makeNetworkCall(() {
-              return queue(ctxUri, widget.token);
-            });
-          }
+          makeNetworkCall(() {
+            return queue(ctxUri, widget.token);
+          });
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -168,7 +166,7 @@ class _SearchState extends State<Search> {
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
-    //TODO: manage these status codes 
+      //TODO: manage these status codes
     } else if (response.statusCode == 200) {
     } else {}
 

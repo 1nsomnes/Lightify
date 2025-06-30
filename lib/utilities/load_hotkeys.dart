@@ -42,17 +42,17 @@ class LoadHotKeys {
     );
   }
 
-  static void loadPlayerhotKeys(void skip, void prev, void pause) async {
+  static void loadPlayerhotKeys(Function() skip, Function() prev, Function() pause) async {
     HotKey skipKey = HotKey(
-      key: PhysicalKeyboardKey.keyN,
+      key: PhysicalKeyboardKey.mediaTrackNext,
       scope: HotKeyScope.inapp,
     );
     HotKey prevKey = HotKey(
-      key: PhysicalKeyboardKey.keyP,
+      key: PhysicalKeyboardKey.mediaTrackPrevious,
       scope: HotKeyScope.inapp,
     );
     HotKey pauseKey = HotKey(
-      key: PhysicalKeyboardKey.space,
+      key: PhysicalKeyboardKey.mediaPlayPause,
       scope: HotKeyScope.inapp,
     );
 
