@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/utilities/spotify.dart';
 import 'package:http/http.dart' as http;
+import 'package:lightify/utilities/spotify/process_response.dart';
+import 'package:lightify/utilities/spotify/search_item.dart';
+import 'package:lightify/utilities/spotify/search_result.dart';
 
 class Search extends StatefulWidget {
   const Search({
@@ -45,9 +48,9 @@ class _SearchState extends State<Search> {
 
   // TODO: maybe add loading when searching?
   // bool _isLoading = false;
-  final List<Map<String, String>> _tracks = [];
-  final List<Map<String, String>> _playists = [];
-  final List<Map<String, String>> _albums = [];
+  List<SearchItem> _tracks = [];
+  List<SearchItem> _playists = [];
+  List<SearchItem> _albums = [];
 
   @override
   void initState() {
@@ -98,7 +101,7 @@ class _SearchState extends State<Search> {
 
       case LogicalKeyboardKey.keyQ:
         if (_selected >= 0 && _selected < _tracks.length) {
-          var ctxUri = _tracks[_selected]["ctxUri"];
+          var ctxUri = _tracks[_selected].ctxUri;
           if (ctxUri != null) {
             makeNetworkCall(() {
               return queue(ctxUri, widget.token);
@@ -129,7 +132,7 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.enter:
         var relevantList = getRelevantList();
         if (_selected >= 0 && _selected < relevantList.length) {
-          var ctxUri = relevantList[_selected]["ctxUri"];
+          var ctxUri = relevantList[_selected].ctxUri;
           playSelected(ctxUri);
         }
 
@@ -139,7 +142,7 @@ class _SearchState extends State<Search> {
     return KeyEventResult.handled;
   }
 
-  List<Map<String, String>> getRelevantList() {
+  List<SearchItem> getRelevantList() {
     if (searchKind == SearchKind.album) {
       return _albums;
     } else if (searchKind == SearchKind.track) {
@@ -149,7 +152,7 @@ class _SearchState extends State<Search> {
     }
   }
 
-  void updateAllLists(Function(List<Map<String, String>>) action) {
+  void updateAllLists(Function(List<SearchItem>) action) {
     action(_albums);
     action(_tracks);
     action(_playists);
@@ -165,6 +168,7 @@ class _SearchState extends State<Search> {
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
+    //TODO: manage these status codes 
     } else if (response.statusCode == 200) {
     } else {}
 
@@ -199,39 +203,19 @@ class _SearchState extends State<Search> {
       updateAllLists((list) => list.clear());
     });
 
-    String body = await makeNetworkCall(
+    SearchResult result = await makeNetworkCall(
       () {
         return searchSpotify(query, 20, 0, widget.token);
       },
       process: (String body) {
-        return body;
+        return ProcessResponse.parseSearchResults(body);
       },
     );
-    final json = jsonDecode(body);
 
     setState(() {
-      List<dynamic> tracks = json["tracks"]["items"];
-      List<dynamic> albums = json["albums"]["items"];
-
-      for (dynamic album in albums) {
-        Map<String, String> values = <String, String>{};
-        values["name"] = album["name"];
-        values["artist"] = album["artists"][0]["name"];
-        values["imgUrl"] = album["images"][2]["url"];
-        values["ctxUri"] = album["uri"];
-
-        _albums.add(values);
-      }
-
-      for (dynamic track in tracks) {
-        Map<String, String> values = <String, String>{};
-        values["name"] = track["name"];
-        values["artist"] = track["artists"][0]["name"];
-        values["imgUrl"] = track["album"]["images"][2]["url"];
-        values["ctxUri"] = track["uri"];
-
-        _tracks.add(values);
-      }
+      _albums = result.albums;
+      _playists = result.playlists;
+      _tracks = result.tracks;
     });
   }
 
@@ -291,7 +275,7 @@ class _SearchState extends State<Search> {
           onKeyEvent: _onKey,
           child: Builder(
             builder: (BuildContext ctx) {
-              var relevantList = getRelevantList();
+              List<SearchItem> relevantList = getRelevantList();
 
               if (relevantList.isEmpty) return const SizedBox.shrink();
 
@@ -301,12 +285,12 @@ class _SearchState extends State<Search> {
                   controller: _scroll,
                   itemCount: relevantList.length,
                   itemBuilder: (context, dynamic i) {
-                    dynamic info = relevantList[i];
+                    SearchItem info = relevantList[i];
                     return ListTile(
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: Image.network(
-                          info['imgUrl'] as String,
+                          info.imgUrl,
                           width: 48,
                           height: 48,
                           fit: BoxFit.cover,
@@ -315,8 +299,8 @@ class _SearchState extends State<Search> {
                         ),
                       ),
                       selected: i == _selected,
-                      title: Text(info["name"]),
-                      subtitle: Text(info["artist"]),
+                      title: Text(info.name),
+                      subtitle: Text(info.artist),
                     );
                   },
                 ),
