@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+const _windowChannel = MethodChannel('com.ced/window_utils');
+
 class LoadHotKeys {
   static Future<void> _toggleWindow() async {
     final isVisible = await windowManager.isVisible();
     if (isVisible) {
       await windowManager.hide();
     } else {
+      await _windowChannel.invokeMethod("moveToActiveDisplay");
       await windowManager.show();
       await windowManager.focus();
     }
@@ -18,7 +21,7 @@ class LoadHotKeys {
     HotKey toggleWindow = HotKey(
       key: PhysicalKeyboardKey.keyS,
       modifiers: [HotKeyModifier.meta, HotKeyModifier.shift],
-      scope: HotKeyScope.system, // Set as inapp-wide hotkey.
+      scope: HotKeyScope.system, 
     );
 
     await hotKeyManager.register(
