@@ -5,6 +5,8 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:http/http.dart" as http;
 
+//TODO: create spotify client that handles errors universally
+
 Future<http.Response> getPlaybackStateByToken(String token) async {
   final uri = Uri.parse('https://api.spotify.com/v1/me/player');
 

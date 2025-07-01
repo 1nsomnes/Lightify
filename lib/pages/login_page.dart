@@ -22,7 +22,6 @@ class LoginPage extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () async {
               var promise = loopbackAuthorize(authorizeUrl: url);
-              FlutterForegroundTask.minimizeApp(); //TODO: fix this
               var result = await promise;
 
               String code = result.toString().split("code=").last;
