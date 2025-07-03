@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -41,6 +43,22 @@ class LoadHotKeys {
       restartHotkey,
       keyDownHandler: (_) {
         restart(); 
+      },
+    );
+
+    HotKey hardRestartKey = HotKey(
+      key: PhysicalKeyboardKey.keyD,
+      modifiers: [HotKeyModifier.control],
+      scope: HotKeyScope.inapp,
+    );
+
+    await hotKeyManager.register( 
+      hardRestartKey,
+      keyDownHandler: (_) async {
+        final storage = FlutterSecureStorage();
+        await storage.deleteAll();
+        restart(); 
+
       },
     );
   }
