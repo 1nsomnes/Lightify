@@ -7,7 +7,7 @@ import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
 final Uri url = Uri.parse(
-  'https://accounts.spotify.com/authorize?client_id=3c3d7b0f935849bf82a7ce3153e1581b&response_type=code&redirect_uri=http://127.0.0.1:3434&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state',
+  'https://accounts.spotify.com/authorize?client_id=3c3d7b0f935849bf82a7ce3153e1581b&response_type=code&redirect_uri=http://127.0.0.1:3434&scope=streaming%20playlist-read-private%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state',
 );
 
 class LoginPage extends StatelessWidget {

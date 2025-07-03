@@ -43,6 +43,26 @@ Future<http.Response> searchSpotify(
 
   return response;
 }
+Future<http.Response> getLikedPlaylists(
+  int limit,
+  int offset,
+  String token,
+) async {
+  final url = Uri.parse("https://api.spotify.com/v1/me/playlists").replace(
+    queryParameters: {
+      "limit": limit.toString(),
+      "offset": offset.toString(),
+    },
+  );
+
+  final response = await http.get(
+    url,
+
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  return response;
+}
 
 Future<http.Response> playTracks(
   List<String> uris,
@@ -65,7 +85,7 @@ Future<http.Response> playTracks(
     body: jsonEncode(payload),
   );
 
-  debugPrint(response.body.toString());
+  //debugPrint(response.body.toString());
 
   return response;
 }

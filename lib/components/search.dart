@@ -42,6 +42,7 @@ class _SearchState extends State<Search> {
   final ScrollController _scroll = ScrollController();
   int _selected = -1;
   SearchKind searchKind = SearchKind.track;
+  bool mine = false;
 
   final _textController = TextEditingController();
   String _lastQuery = "";
@@ -50,8 +51,13 @@ class _SearchState extends State<Search> {
   // TODO: maybe add loading when searching?
   // bool _isLoading = false;
   List<SearchItem> _tracks = [];
-  List<SearchItem> _playists = [];
+  List<SearchItem> _playlists = [];
   List<SearchItem> _albums = [];
+
+  // personal saved stuff.
+  List<SearchItem> _myTracks = [];
+  List<SearchItem> _myPlaylists = [];
+  List<SearchItem> _myAlbums = [];
 
   @override
   void initState() {
@@ -60,6 +66,33 @@ class _SearchState extends State<Search> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchNode.requestFocus();
     });
+
+    makeNetworkCall(
+      () {
+        return getLikedPlaylists(50, 0, widget.token);
+      },
+      process: (body) {
+        debugPrint("liked playlist");
+
+        final json = jsonDecode(body);
+        //debugPrint("items: " + json["total"].toString());
+        //debugPrint(json.toString());
+        debugPrint("token: ${widget.token}");
+        for (dynamic playlist in json["items"]) {
+          //debugPrint("\n");
+          //debugPrint(playlist.toString());
+          //if (playlist == null) continue;
+          var item = SearchItem(
+            name: playlist["name"] ?? "",
+            artist: playlist["owner"]["display_name"] ?? "",
+            imgUrl: playlist["images"][0]["url"] ?? "",
+            ctxUri: playlist["uri"] ?? "",
+          );
+          _myPlaylists.add(item);
+        }
+
+      },
+    );
   }
 
   @override
@@ -128,6 +161,13 @@ class _SearchState extends State<Search> {
         setState(() {
           searchKind = SearchKind.track;
         });
+
+      case LogicalKeyboardKey.keyM:
+        // personal saved stuffe
+        setState(() {
+          mine = !mine;
+        });
+
       case LogicalKeyboardKey.enter:
         var relevantList = getRelevantList();
         if (_selected >= 0 && _selected < relevantList.length) {
@@ -142,19 +182,29 @@ class _SearchState extends State<Search> {
   }
 
   List<SearchItem> getRelevantList() {
-    if (searchKind == SearchKind.album) {
-      return _albums;
-    } else if (searchKind == SearchKind.track) {
-      return _tracks;
+    if (mine) {
+      if (searchKind == SearchKind.album) {
+        return _myAlbums;
+      } else if (searchKind == SearchKind.track) {
+        return _myTracks;
+      } else {
+        return _myPlaylists;
+      }
     } else {
-      return _playists;
+      if (searchKind == SearchKind.album) {
+        return _albums;
+      } else if (searchKind == SearchKind.track) {
+        return _tracks;
+      } else {
+        return _playlists;
+      }
     }
   }
 
   void updateAllLists(Function(List<SearchItem>) action) {
     action(_albums);
     action(_tracks);
-    action(_playists);
+    action(_playlists);
   }
 
   // We expect universal handling of some response status codes such as 401.
@@ -213,7 +263,7 @@ class _SearchState extends State<Search> {
 
     setState(() {
       _albums = result.albums;
-      _playists = result.playlists;
+      _playlists = result.playlists;
       _tracks = result.tracks;
     });
   }
