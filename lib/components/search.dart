@@ -319,7 +319,7 @@ class _SearchState extends State<Search> {
             ),
           ),
         ),
-        WindowSelection(screen: searchKind),
+        WindowSelection(screen: searchKind, mine: mine),
         Focus(
           focusNode: _keyNode,
           onKeyEvent: _onKey,
