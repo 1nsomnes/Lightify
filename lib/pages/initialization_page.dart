@@ -4,9 +4,11 @@ import 'package:lightify/pages/loading_page.dart';
 import 'package:lightify/pages/login_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lightify/providers/theme/darkTheme.dart';
 import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
+
 
 class InitializationPage extends StatefulWidget {
   const InitializationPage({super.key});
@@ -68,6 +70,7 @@ class _InitializationPageState extends State<InitializationPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: darkMode,
       home: Scaffold(
         backgroundColor: Colors.transparent,
         body: FutureBuilder(
