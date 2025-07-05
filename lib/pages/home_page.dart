@@ -119,7 +119,7 @@ class _HomePageState extends State<HomePage> {
       debugShowCheckedModeBanner: false,
 
       home: Scaffold(
-        backgroundColor: const Color(0xCC222222),
+        backgroundColor: Colors.transparent ,
         body: Center(
           child: Column(
             children: [

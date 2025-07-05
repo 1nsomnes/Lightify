@@ -27,14 +27,14 @@ class MainFlutterWindow: NSWindow {
         self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)))
         self.orderFrontRegardless()
 
-        //let blurView = NSVisualEffectView(frame: contentView!.bounds)
-        //blurView.autoresizingMask = [.width, .height]
-        //blurView.blendingMode = .behindWindow  // composite behind window content
-        //blurView.material = .hudWindow  // you can experiment: .sidebar, .popover, .fullScreenUI...
-        //blurView.state = .active  // make it “live”
-//
-        //// 2️⃣ Insert it under the Flutter view
-        //contentView?.addSubview(blurView, positioned: .below, relativeTo: flutterViewController.view)
+        let blurView = NSVisualEffectView(frame: contentView!.bounds)
+        blurView.autoresizingMask = [.width, .height]
+        blurView.blendingMode = .behindWindow  // composite behind window content
+        blurView.material = .hudWindow  // you can experiment: .sidebar, .popover, .fullScreenUI...
+        blurView.state = .active  // make it “live”
+
+        // 2️⃣ Insert it under the Flutter view
+        contentView?.addSubview(blurView, positioned: .below, relativeTo: flutterViewController.view)
 
         self.collectionBehavior.insert([.canJoinAllSpaces, .fullScreenAuxiliary])
 
