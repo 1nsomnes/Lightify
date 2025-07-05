@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
 
     loadHtmlFromAssets(context);
 
-    //TODO: get media keys working... 
+    //TODO: get media keys working...
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
   }
 
@@ -119,6 +119,7 @@ class _HomePageState extends State<HomePage> {
       debugShowCheckedModeBanner: false,
 
       home: Scaffold(
+        backgroundColor: const Color(0xCC222222),
         body: Center(
           child: Column(
             children: [
@@ -180,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                 pause: _togglePlay,
                 prev: _prev,
                 skip: _next,
-                setPlaying: _setPlaying
+                setPlaying: _setPlaying,
               ),
             ],
           ),

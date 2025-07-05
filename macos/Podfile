@@ -1,3 +1,9 @@
+#WARNING: Match this version to the one listed here https://pub.dev/packages/macos_window_utils/versions/1.7.0
+# Flutter acrylic uses this package under the hood and requires that the two match. 
+# Make sure the XCODE page matches too, with the deployment target under Runner > Project > Runner > Build Settings 
+# And search "Deployment Target," change this too match too- then you should be all set. 
+# ONLY DO THIS IF THE PROJECT IS STILL USING FLUTTER ACRYLIC 
+
 platform :osx, '10.14'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.

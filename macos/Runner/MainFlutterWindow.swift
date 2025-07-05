@@ -5,22 +5,36 @@ private let kWindowChannel = "com.ced/window_utils"
 
 class MainFlutterWindow: NSWindow {
     override func awakeFromNib() {
+        super.awakeFromNib()
+        self.isOpaque = false
+        self.backgroundColor = .clear
+
         let flutterViewController = FlutterViewController()
         let windowFrame = self.frame
         self.contentViewController = flutterViewController
+        flutterViewController.backgroundColor = .clear
+
         self.setFrame(windowFrame, display: true)
 
-        self.titlebarAppearsTransparent = true
-        self.titleVisibility = .hidden
-
+        //self.styleMask.remove(.titled)
         self.styleMask.insert(.fullSizeContentView)
 
+        self.titleVisibility = .hidden
         self.isMovableByWindowBackground = true
         self.titlebarAppearsTransparent = true
 
         //TODO: Still doesn't work over YouTube videos, but when would you be listening to music over youtube, right? idk
         self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)))
         self.orderFrontRegardless()
+
+        //let blurView = NSVisualEffectView(frame: contentView!.bounds)
+        //blurView.autoresizingMask = [.width, .height]
+        //blurView.blendingMode = .behindWindow  // composite behind window content
+        //blurView.material = .hudWindow  // you can experiment: .sidebar, .popover, .fullScreenUI...
+        //blurView.state = .active  // make it “live”
+//
+        //// 2️⃣ Insert it under the Flutter view
+        //contentView?.addSubview(blurView, positioned: .below, relativeTo: flutterViewController.view)
 
         self.collectionBehavior.insert([.canJoinAllSpaces, .fullScreenAuxiliary])
 
@@ -52,10 +66,8 @@ class MainFlutterWindow: NSWindow {
         }
 
         self.contentViewController = flutterViewController
-
         RegisterGeneratedPlugins(registry: flutterViewController)
 
-        super.awakeFromNib()
     }
 
     private func moveToActiveDisplay() {

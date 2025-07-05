@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/load_hotkeys.dart';
@@ -11,7 +10,6 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
-
 class BlurWindowListener with WindowListener {
   @override
   void onWindowBlur() {
@@ -19,9 +17,14 @@ class BlurWindowListener with WindowListener {
   }
 }
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //await Window.initialize();
+
+  //await Window.setEffect(
+    //effect: WindowEffect.aero,
+    //color: Color(0x00FFFFFF),
+  //);
 
   await hotKeyManager.unregisterAll();
   await windowManager.ensureInitialized();
@@ -31,7 +34,7 @@ void main() async {
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
   }
-  
+
   windowManager.addListener(BlurWindowListener());
 
   // RUN THE APPLICATION
