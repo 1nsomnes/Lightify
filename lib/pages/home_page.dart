@@ -115,77 +115,70 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-
-      home: Scaffold(
-        backgroundColor: Colors.transparent ,
-        body: Center(
-          child: Column(
+    return Center(
+      child: Column(
+        children: [
+          SizedBox.fromSize(
+            size: Size.zero,
+            child: WebViewWidget(controller: _controller),
+          ),
+          Row(
             children: [
-              SizedBox.fromSize(
-                size: Size.zero,
-                child: WebViewWidget(controller: _controller),
+              Container(
+                width: 100,
+                height: 100,
+                color: imgurl == "null" ? Colors.blue : null,
+                decoration: imgurl != "null"
+                    ? BoxDecoration(
+                        image: DecorationImage(image: NetworkImage(imgurl)),
+                      )
+                    : null,
+                margin: EdgeInsets.all(20),
               ),
-              Row(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    color: imgurl == "null" ? Colors.blue : null,
-                    decoration: imgurl != "null"
-                        ? BoxDecoration(
-                            image: DecorationImage(image: NetworkImage(imgurl)),
-                          )
-                        : null,
-                    margin: EdgeInsets.all(20),
-                  ),
-                  Expanded(
-                    child: Column(
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(song, style: TextStyle(fontSize: 16)),
+                    Text(artist, style: TextStyle(fontSize: 12)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text(song, style: TextStyle(fontSize: 16)),
-                        Text(artist, style: TextStyle(fontSize: 12)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            buildCircleButton(
-                              icon: Icons.skip_previous,
-                              onPressed: _prev,
-                              size: 40,
-                              backgroundColor: Colors.grey[700]!,
-                            ),
-                            SizedBox(width: 20),
-                            buildCircleButton(
-                              icon: isPlaying ? Icons.pause : Icons.play_arrow,
-                              onPressed: _togglePlay,
-                              size: 40,
-                              backgroundColor: Colors.blue,
-                            ),
-                            SizedBox(width: 20),
-                            buildCircleButton(
-                              icon: Icons.skip_next,
-                              onPressed: _next,
-                              size: 40,
-                              backgroundColor: Colors.grey[700]!,
-                            ),
-                          ],
+                        buildCircleButton(
+                          icon: Icons.skip_previous,
+                          onPressed: _prev,
+                          size: 40,
+                          backgroundColor: Colors.grey[700]!,
+                        ),
+                        SizedBox(width: 20),
+                        buildCircleButton(
+                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                          onPressed: _togglePlay,
+                          size: 40,
+                          backgroundColor: Colors.blue,
+                        ),
+                        SizedBox(width: 20),
+                        buildCircleButton(
+                          icon: Icons.skip_next,
+                          onPressed: _next,
+                          size: 40,
+                          backgroundColor: Colors.grey[700]!,
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              Search(
-                token: Provider.of<AuthProvider>(context).getToken,
-                deviceId: deviceId,
-                pause: _togglePlay,
-                prev: _prev,
-                skip: _next,
-                setPlaying: _setPlaying,
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+          Search(
+            token: Provider.of<AuthProvider>(context).getToken,
+            deviceId: deviceId,
+            pause: _togglePlay,
+            prev: _prev,
+            skip: _next,
+            setPlaying: _setPlaying,
+          ),
+        ],
       ),
     );
   }

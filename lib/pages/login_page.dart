@@ -15,44 +15,36 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () async {
-              var promise = loopbackAuthorize(authorizeUrl: url);
-              var result = await promise;
+    return Center(
+      child: ElevatedButton(
+        onPressed: () async {
+          var promise = loopbackAuthorize(authorizeUrl: url);
+          var result = await promise;
 
-              String code = result.toString().split("code=").last;
+          String code = result.toString().split("code=").last;
 
-              debugPrint(code);
+          debugPrint(code);
 
-              String token = await debugRequestToken(code);
-              debugPrint("received token: $token");
-              if (context.mounted) {
-                final authProvider = Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                );
+          String token = await debugRequestToken(code);
+          debugPrint("received token: $token");
+          if (context.mounted) {
+            final authProvider = Provider.of<AuthProvider>(
+              context,
+              listen: false,
+            );
 
-                final storage = FlutterSecureStorage();
-                await storage.write(key: "token", value: token);
+            final storage = FlutterSecureStorage();
+            await storage.write(key: "token", value: token);
 
-                authProvider.setToken(token);
-                authProvider.setIsAuthenticated(true);
-              }
-            },
+            authProvider.setToken(token);
+            authProvider.setIsAuthenticated(true);
+          }
+        },
 
-            style: const ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll<Color>(Color(0xff1DB954)),
-            ),
-            child: Text(
-              "Login To Spotify",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
+        style: const ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(Color(0xff1DB954)),
         ),
+        child: Text("Login To Spotify", style: TextStyle(color: Colors.white)),
       ),
     );
   }

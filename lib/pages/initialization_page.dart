@@ -66,30 +66,32 @@ class _InitializationPageState extends State<InitializationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return LoadingPage();
-        }
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: FutureBuilder(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return LoadingPage();
+            }
 
-        if (snapshot.data == true) {
-          final authProvider = Provider.of<AuthProvider>(context);
-          if (authProvider.isAuthenticated) {
-            return HomePage();
-          } else {
-            return LoginPage();
-          }
-        } else {
-          return MaterialApp(
-            home: Scaffold(
-              body: Center(
+            if (snapshot.data == true) {
+              final authProvider = Provider.of<AuthProvider>(context);
+              if (authProvider.isAuthenticated) {
+                return HomePage();
+              } else {
+                return LoginPage();
+              }
+            } else {
+              return Center(
                 child: Text("Fatal error occured. Please restart the app."),
-              ),
-            ),
-          );
-        }
-      },
+              );
+            }
+          },
+        ),
+      ),
     );
   }
 }
