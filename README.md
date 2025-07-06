@@ -1,6 +1,6 @@
 # Lightify
 
-Spotlight for spotify.
+Spotlight style Spotify client with clean themes, loads of customization, and vim-like keybinds. 
 
 # Installing
 TBD
