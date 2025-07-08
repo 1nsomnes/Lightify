@@ -90,7 +90,6 @@ class _SearchState extends State<Search> {
           );
           _myPlaylists.add(item);
         }
-
       },
     );
   }
@@ -349,6 +348,9 @@ class _SearchState extends State<Search> {
                         ),
                       ),
                       selected: i == _selected,
+                      selectedColor: Color(0xFF1DB954),
+                      titleTextStyle: Theme.of(context).textTheme.titleMedium,
+                      subtitleTextStyle: Theme.of(context).textTheme.labelSmall,
                       title: Text(info.name),
                       subtitle: Text(info.artist),
                     );

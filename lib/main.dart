@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
-import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -19,12 +18,6 @@ class BlurWindowListener with WindowListener {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Window.initialize();
-
-  //await Window.setEffect(
-    //effect: WindowEffect.aero,
-    //color: Color(0x00FFFFFF),
-  //);
 
   await hotKeyManager.unregisterAll();
   await windowManager.ensureInitialized();
