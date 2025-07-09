@@ -3,12 +3,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/components/window_selection.dart';
+import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify.dart';
 import 'package:http/http.dart' as http;
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
+import 'package:lightify/utilities/spotify_auth.dart';
+import 'package:provider/provider.dart';
 
 class Search extends StatefulWidget {
   const Search({
@@ -19,6 +23,7 @@ class Search extends StatefulWidget {
     required this.prev,
     required this.pause,
     required this.setPlaying,
+    required this.updateToken,
   });
 
   final String token;
@@ -27,6 +32,7 @@ class Search extends StatefulWidget {
   final Function skip;
   final Function prev;
   final Function pause;
+  final Function updateToken;
 
   final Function setPlaying;
 
@@ -59,13 +65,13 @@ class _SearchState extends State<Search> {
   List<SearchItem> _myPlaylists = [];
   List<SearchItem> _myAlbums = [];
 
+  late AuthProvider authProvider;
+  late FlutterSecureStorage storage;
+
   @override
-  void initState() {
-    super.initState();
-    _textController.addListener(_onSearchChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchNode.requestFocus();
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    authProvider = Provider.of<AuthProvider>(context);
 
     makeNetworkCall(
       () {
@@ -92,6 +98,17 @@ class _SearchState extends State<Search> {
         }
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _textController.addListener(_onSearchChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchNode.requestFocus();
+    });
+
+    storage = FlutterSecureStorage();
   }
 
   @override
@@ -216,7 +233,18 @@ class _SearchState extends State<Search> {
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
-      //TODO: manage these status codes
+      debugPrint("Authentication expired, attempting to refresh tokens");
+      if (await attemptRefresh(
+        authProvider.getRefreshToken,
+        authProvider,
+        storage,
+      )) {
+        debugPrint(
+          "Successfully refreshed token, attempting to reinject token",
+        );
+        widget.updateToken(authProvider.getToken);
+        
+      }
     } else if (response.statusCode == 200) {
     } else {}
 

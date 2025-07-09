@@ -93,6 +93,13 @@ class _HomePageState extends State<HomePage> {
     _controller.runJavaScript("togglePlayback();");
   }
 
+  void _updateToken(String token) async {
+    final escaped = token.replaceAll("'", r"\'");
+    final setTokenString = "setToken('$escaped');";
+    await _controller.runJavaScript(setTokenString);
+    await _controller.runJavaScript("reconnect();");
+  }
+
   void _next() {
     _controller.runJavaScript("next();");
   }
@@ -176,6 +183,7 @@ class _HomePageState extends State<HomePage> {
             prev: _prev,
             skip: _next,
             setPlaying: _setPlaying,
+            updateToken: _updateToken,
           ),
         ],
       ),

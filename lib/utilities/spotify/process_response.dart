@@ -35,7 +35,7 @@ class ProcessResponse {
     }
 
     for (dynamic playlist in playlists) {
-      debugPrint(playlist.toString());
+      //debugPrint(playlist.toString());
       if(playlist == null) continue;
       var item = SearchItem(
         name: playlist["name"] ?? "",

@@ -48,7 +48,6 @@ class _InitializationPageState extends State<InitializationPage> {
     final storage = FlutterSecureStorage();
     final token = await storage.read(key: "token");
     final refreshToken = await storage.read(key: "refresh_token");
-    debugPrint(refreshToken);
 
     if (token != null) {
       final result = await isValidToken(token);
@@ -63,21 +62,8 @@ class _InitializationPageState extends State<InitializationPage> {
       }
     } else if (refreshToken != null) {
       debugPrint("attempting refresh");
-      final refreshResponse = await requestTokenFromRefresh(refreshToken);
-      if (refreshResponse == null) {
-        authProvider.setIsAuthenticated(false);
-        return true;
-      }
 
-      final String newToken = refreshResponse["access_token"];
-      authProvider.setIsAuthenticated(true);
-      authProvider.setToken(newToken);
-
-      if (refreshResponse.containsKey("refresh_token")) {
-        String refreshToken = refreshResponse["refresh_token"];
-        await storage.write(key: "refreshToken", value: refreshToken);
-        authProvider.setRefreshToken(refreshToken);
-      }
+      attemptRefresh(refreshToken, authProvider, storage);
     } else {
       authProvider.setIsAuthenticated(false);
     }

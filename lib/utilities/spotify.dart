@@ -33,8 +33,6 @@ Future<http.Response> searchSpotify(
     },
   );
 
-  debugPrint(url.toString());
-
   final response = await http.get(
     url,
 
@@ -112,7 +110,7 @@ Future<http.Response> playPlaylistOrAlbums(
     body: jsonEncode(payload),
   );
 
-  debugPrint(response.body.toString());
+  //debugPrint(response.body.toString());
   
   return response;
 }
@@ -133,7 +131,7 @@ Future<http.Response> queue(String uri, String token, {String deviceId = ""}) as
     },
   );
   
-  debugPrint(response.body.toString());
+  //debugPrint(response.body.toString());
 
   return response;
 }

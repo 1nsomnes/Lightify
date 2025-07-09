@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hotkey_manager/hotkey_manager.dart';
 
 class AuthProvider extends ChangeNotifier {
   String _token = "";
@@ -8,6 +11,28 @@ class AuthProvider extends ChangeNotifier {
   String get getToken => _token;
   String get getRefreshToken => _refreshToken;
   bool get isAuthenticated => _isAuthenticated;
+
+  HotKey breakTokenKey = HotKey(
+    key: PhysicalKeyboardKey.keyT,
+    modifiers: [HotKeyModifier.control],
+    scope: HotKeyScope.inapp,
+  );
+
+  AuthProvider() {
+    _registerHotKey();
+  }
+
+  Future<void> _registerHotKey() async {
+    await hotKeyManager.register(
+      breakTokenKey,
+      keyDownHandler: (_) async {
+        setToken("break_token");
+        await FlutterSecureStorage().write(key: "token", value: "break_token");
+
+        debugPrint("attempted to break token");
+      },
+    );
+  }
 
   void setIsAuthenticated(bool value) {
     _isAuthenticated = value;
