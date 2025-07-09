@@ -57,7 +57,7 @@
           body: current_track
         };
         FlutterHost.postMessage(JSON.stringify(return_object));
-        console.log('Currently Playing', current_track);
+        //console.log('Currently Playing', current_track);
       });
 
       player.connect();
@@ -81,7 +81,7 @@
 
     function reconnect() {
       console.log("Reconnect");
-      window.spotifyPlaer.connect();
+      window.spotifyPlayer.connect();
     }
 
     function setToken(token) {

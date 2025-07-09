@@ -61,8 +61,6 @@ class _InitializationPageState extends State<InitializationPage> {
         return false; //some strange error has happened
       }
     } else if (refreshToken != null) {
-      debugPrint("attempting refresh");
-
       attemptRefresh(refreshToken, authProvider, storage);
     } else {
       authProvider.setIsAuthenticated(false);
