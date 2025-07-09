@@ -25,7 +25,9 @@ class LoginPage extends StatelessWidget {
 
           debugPrint(code);
 
-          String token = await debugRequestToken(code);
+          Map<String, dynamic> json = await debugRequestToken(code);
+          String token = json["access_token"];
+
           debugPrint("received token: $token");
           if (context.mounted) {
             final authProvider = Provider.of<AuthProvider>(
@@ -35,6 +37,16 @@ class LoginPage extends StatelessWidget {
 
             final storage = FlutterSecureStorage();
             await storage.write(key: "token", value: token);
+
+            debugPrint("Json");
+            debugPrint(json.toString());
+
+            if (json.containsKey("refresh_token")) {
+              String refreshToken = json["refresh_token"];
+              debugPrint("adding following refresh token: " + refreshToken);
+              await storage.write(key: "refresh_token", value: refreshToken);
+              authProvider.setRefreshToken(refreshToken);
+            }
 
             authProvider.setToken(token);
             authProvider.setIsAuthenticated(true);

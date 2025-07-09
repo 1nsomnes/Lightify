@@ -7,30 +7,13 @@
   <script>
 
 
-
-    function playBeep() {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, ctx.currentTime); // 440 Hz = A4
-      osc.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.2); // play for 0.2 seconds
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      playBeep();
-    });
-
-
     window.onSpotifyWebPlaybackSDKReady = () => {
-      const token = '{token}';
+      window.token = '{token}';
 
       console.log("current token = " + token)
       const player = new Spotify.Player({
         name: 'Lightify',
-        getOAuthToken: cb => {cb(token);},
+        getOAuthToken: cb => {cb(window.token);},
         volume: 1
       });
       console.log("spotify play back ready")
@@ -94,6 +77,11 @@
     function previous() {
       console.log("Going back a song")
       window.spotifyPlayer.previousTrack();
+    }
+
+    function reconnect() {
+      console.log("Reconnect");
+      window.spotifyPlaer.connect();
     }
 
   </script>

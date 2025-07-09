@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lightify/utilities/spotify.dart';
 import "package:http/http.dart" as http;
@@ -23,14 +24,43 @@ Future<AuthError> isValidToken(String token) async {
   return AuthError.unknown;
 }
 
+Future<Map<String, dynamic>?> requestTokenFromRefresh(String refreshToken) async {
+  final uri = Uri.parse('https://accounts.spotify.com/api/token');
+  
+  await dotenv.load(fileName: ".env");
+  String? auth = dotenv.env["client"];
+
+  if (auth == null) return {"Error": "Could not find client secrets"};
+
+  final response = await http.post(
+    uri,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic $auth'
+    },
+    body: {
+      'refresh_token': refreshToken,
+      'grant_type': 'refresh_token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> json = jsonDecode(response.body);
+    return json;
+  }
+  debugPrint("failed refresh");
+
+  return null;
+}
+
 //WARNING: DO NOT USE THIS IN PRODUCTION
-Future<String> debugRequestToken(String code) async {
+Future<Map<String, dynamic>> debugRequestToken(String code) async {
   final uri = Uri.parse('https://accounts.spotify.com/api/token');
 
   await dotenv.load(fileName: ".env");
   String? auth = dotenv.env["client"];
 
-  if (auth == null) return "";
+  if (auth == null) return {"Error": "Could not find client secrets"};
 
   final response = await http.post(
     uri,
@@ -39,16 +69,16 @@ Future<String> debugRequestToken(String code) async {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: {
-      'code' : code, 
+      'code': code,
       'redirect_uri': 'http://127.0.0.1:3434',
-      'grant_type' : 'authorization_code'
+      'grant_type': 'authorization_code',
     },
   );
 
-  if(response.statusCode == 200) {
-   final Map<String, dynamic> json = jsonDecode(response.body); 
-   return json['access_token'];
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> json = jsonDecode(response.body);
+    return json;
   }
 
-  return "";
+  return {"Error": "Bad response"};
 }

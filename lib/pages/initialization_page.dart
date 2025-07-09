@@ -9,7 +9,6 @@ import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
-
 class InitializationPage extends StatefulWidget {
   const InitializationPage({super.key});
 
@@ -48,9 +47,12 @@ class _InitializationPageState extends State<InitializationPage> {
 
     final storage = FlutterSecureStorage();
     final token = await storage.read(key: "token");
+    final refreshToken = await storage.read(key: "refresh_token");
+    debugPrint(refreshToken);
 
     if (token != null) {
       final result = await isValidToken(token);
+
       if (result == AuthError.invalid) {
         authProvider.setIsAuthenticated(false);
       } else if (result == AuthError.valid) {
@@ -58,6 +60,23 @@ class _InitializationPageState extends State<InitializationPage> {
         authProvider.setToken(token);
       } else {
         return false; //some strange error has happened
+      }
+    } else if (refreshToken != null) {
+      debugPrint("attempting refresh");
+      final refreshResponse = await requestTokenFromRefresh(refreshToken);
+      if (refreshResponse == null) {
+        authProvider.setIsAuthenticated(false);
+        return true;
+      }
+
+      final String newToken = refreshResponse["access_token"];
+      authProvider.setIsAuthenticated(true);
+      authProvider.setToken(newToken);
+
+      if (refreshResponse.containsKey("refresh_token")) {
+        String refreshToken = refreshResponse["refresh_token"];
+        await storage.write(key: "refreshToken", value: refreshToken);
+        authProvider.setRefreshToken(refreshToken);
       }
     } else {
       authProvider.setIsAuthenticated(false);
