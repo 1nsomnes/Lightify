@@ -61,9 +61,11 @@ Future<bool> attemptRefresh(
 ) async {
 
   final refreshResponse = await requestTokenFromRefresh(refreshToken);
+  debugPrint("Attempting to refresh tokens");
 
   if (refreshResponse == null) {
     authProvider.setIsAuthenticated(false);
+    debugPrint("Refreshing token failed.");
     return false;
   }
   final String newToken = refreshResponse["access_token"];

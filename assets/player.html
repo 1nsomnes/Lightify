@@ -39,7 +39,11 @@
       });
 
       player.addListener('authentication_error', ({message}) => {
-        console.error(message);
+        console.log("Authentication Failed");
+        return_object = {
+          func: "authenticationFailed"
+        };
+        FlutterHost.postMessage(JSON.stringify(return_object));
       });
 
       player.addListener('account_error', ({message}) => {

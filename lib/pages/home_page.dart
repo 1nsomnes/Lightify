@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
+import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -66,6 +67,10 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 deviceId = json["body"]["device_id"];
               });
+            case "authenticationFailed":
+            default: 
+              debugPrint("unhandled function: ${json['func']}");
+
           }
         },
       );

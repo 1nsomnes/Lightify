@@ -10,6 +10,7 @@ import 'package:lightify/utilities/spotify.dart';
 import 'package:http/http.dart' as http;
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
+import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +47,6 @@ class _SearchState extends State<Search> {
   final FocusNode _keyNode = FocusNode();
   final FocusNode _searchNode = FocusNode();
   final ScrollController _scroll = ScrollController();
-  int _selected = -1;
   SearchKind searchKind = SearchKind.track;
   bool mine = false;
 
@@ -56,14 +56,14 @@ class _SearchState extends State<Search> {
 
   // TODO: maybe add loading when searching?
   // bool _isLoading = false;
-  List<SearchItem> _tracks = [];
-  List<SearchItem> _playlists = [];
-  List<SearchItem> _albums = [];
+  SearchList _tracks = SearchList();
+  SearchList _playlists = SearchList();
+  SearchList _albums = SearchList();
 
   // personal saved stuff.
-  List<SearchItem> _myTracks = [];
-  List<SearchItem> _myPlaylists = [];
-  List<SearchItem> _myAlbums = [];
+  SearchList _myTracks = SearchList();
+  SearchList _myPlaylists = SearchList();
+  SearchList _myAlbums = SearchList();
 
   late AuthProvider authProvider;
   late FlutterSecureStorage storage;
@@ -94,7 +94,7 @@ class _SearchState extends State<Search> {
             imgUrl: playlist["images"][0]["url"] ?? "",
             ctxUri: playlist["uri"] ?? "",
           );
-          _myPlaylists.add(item);
+          _myPlaylists.items.add(item);
         }
       },
     );
@@ -122,15 +122,16 @@ class _SearchState extends State<Search> {
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
+    var relevantList = getRelevantList();
 
     switch (lk) {
       case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
         setState(() {
-          _selected = (_selected + 1).clamp(0, _tracks.length - 1);
+          relevantList.selected = (relevantList.selected + 1).clamp(0, relevantList.items.length - 1);
         });
         _scroll.animateTo(
-          _selected * 56.0,
+          relevantList.selected * 56.0,
           duration: Duration(milliseconds: 100),
           curve: Curves.ease,
         );
@@ -138,20 +139,20 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.arrowUp:
       case LogicalKeyboardKey.keyK:
         setState(() {
-          _selected = (_selected - 1).clamp(0, _tracks.length - 1);
+          relevantList.selected = (relevantList.selected - 1).clamp(0, relevantList.items.length - 1);
         });
         _scroll.animateTo(
-          _selected * 56.0,
+          relevantList.selected * 56.0,
           duration: Duration(milliseconds: 100),
           curve: Curves.ease,
         );
       case LogicalKeyboardKey.keyS:
-        setState(() => _selected = -1);
+        setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyQ:
-        if (_selected >= 0 && _selected < _tracks.length) {
-          var ctxUri = _tracks[_selected].ctxUri;
+        if (relevantList.selected >= 0 && relevantList.selected < relevantList.items.length) {
+          var ctxUri = relevantList.items[relevantList.selected].ctxUri;
           makeNetworkCall(() {
             return queue(ctxUri, widget.token);
           });
@@ -185,9 +186,8 @@ class _SearchState extends State<Search> {
         });
 
       case LogicalKeyboardKey.enter:
-        var relevantList = getRelevantList();
-        if (_selected >= 0 && _selected < relevantList.length) {
-          var ctxUri = relevantList[_selected].ctxUri;
+        if (relevantList.selected >= 0 && relevantList.selected < relevantList.items.length) {
+          var ctxUri = relevantList.items[relevantList.selected].ctxUri;
           playSelected(ctxUri);
         }
 
@@ -197,7 +197,7 @@ class _SearchState extends State<Search> {
     return KeyEventResult.handled;
   }
 
-  List<SearchItem> getRelevantList() {
+  SearchList getRelevantList() {
     if (mine) {
       if (searchKind == SearchKind.album) {
         return _myAlbums;
@@ -217,7 +217,7 @@ class _SearchState extends State<Search> {
     }
   }
 
-  void updateAllLists(Function(List<SearchItem>) action) {
+  void updateAllLists(Function(SearchList) action) {
     action(_albums);
     action(_tracks);
     action(_playlists);
@@ -233,7 +233,6 @@ class _SearchState extends State<Search> {
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
-      debugPrint("Authentication expired, attempting to refresh tokens");
       if (await attemptRefresh(
         authProvider.getRefreshToken,
         authProvider,
@@ -243,7 +242,6 @@ class _SearchState extends State<Search> {
           "Successfully refreshed token, attempting to reinject token",
         );
         widget.updateToken(authProvider.getToken);
-        
       }
     } else if (response.statusCode == 200) {
     } else {}
@@ -276,7 +274,10 @@ class _SearchState extends State<Search> {
 
   void _populateResults(String query) async {
     setState(() {
-      updateAllLists((list) => list.clear());
+      updateAllLists((list) {
+        list.items.clear();
+        list.selected = 0;
+      });
     });
 
     SearchResult result = await makeNetworkCall(
@@ -289,9 +290,9 @@ class _SearchState extends State<Search> {
     );
 
     setState(() {
-      _albums = result.albums;
-      _playlists = result.playlists;
-      _tracks = result.tracks;
+      _albums.items = result.albums;
+      _playlists.items = result.playlists;
+      _tracks.items = result.tracks;
     });
   }
 
@@ -301,7 +302,7 @@ class _SearchState extends State<Search> {
     if (query.isNotEmpty) {
       _populateResults(query);
     } else {
-      setState(() => updateAllLists((list) => list.clear()));
+      setState(() => updateAllLists((list) => list.items.clear()));
     }
   }
 
@@ -334,7 +335,7 @@ class _SearchState extends State<Search> {
               _flushDebounce();
               _keyNode.requestFocus();
               setState(() {
-                _selected = 0;
+                updateAllLists((list) => list.selected = 0 );
               });
             },
             decoration: const InputDecoration(
@@ -352,17 +353,17 @@ class _SearchState extends State<Search> {
           onKeyEvent: _onKey,
           child: Builder(
             builder: (BuildContext ctx) {
-              List<SearchItem> relevantList = getRelevantList();
+              SearchList relevantList = getRelevantList();
 
-              if (relevantList.isEmpty) return const SizedBox.shrink();
+              if (relevantList.items.isEmpty) return const SizedBox.shrink();
 
               return SizedBox(
                 height: 350,
                 child: ListView.builder(
                   controller: _scroll,
-                  itemCount: relevantList.length,
+                  itemCount: relevantList.items.length,
                   itemBuilder: (context, dynamic i) {
-                    SearchItem info = relevantList[i];
+                    SearchItem info = relevantList.items[i];
                     return ListTile(
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
@@ -375,7 +376,7 @@ class _SearchState extends State<Search> {
                               Icon(Icons.broken_image),
                         ),
                       ),
-                      selected: i == _selected,
+                      selected: i == relevantList.selected,
                       selectedColor: Color(0xFF1DB954),
                       titleTextStyle: Theme.of(context).textTheme.titleMedium,
                       subtitleTextStyle: Theme.of(context).textTheme.labelSmall,
