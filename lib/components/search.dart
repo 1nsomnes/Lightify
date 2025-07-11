@@ -14,6 +14,7 @@ import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Search extends StatefulWidget {
   const Search({
@@ -46,7 +47,7 @@ enum SearchKind { playlist, track, album }
 class _SearchState extends State<Search> {
   final FocusNode _keyNode = FocusNode();
   final FocusNode _searchNode = FocusNode();
-  final ScrollController _scroll = ScrollController();
+  final ItemScrollController _scroll = ItemScrollController();
   SearchKind searchKind = SearchKind.track;
   bool mine = false;
 
@@ -128,30 +129,39 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
         setState(() {
-          relevantList.selected = (relevantList.selected + 1).clamp(0, relevantList.items.length - 1);
+          relevantList.selected = (relevantList.selected + 1).clamp(
+            0,
+            relevantList.items.length - 1,
+          );
         });
-        _scroll.animateTo(
-          relevantList.selected * 56.0,
-          duration: Duration(milliseconds: 100),
-          curve: Curves.ease,
+
+        _scroll.scrollTo(
+          index: relevantList.selected,
+          duration: Duration(milliseconds: 200),
+          alignment: 0.38,
         );
 
       case LogicalKeyboardKey.arrowUp:
       case LogicalKeyboardKey.keyK:
         setState(() {
-          relevantList.selected = (relevantList.selected - 1).clamp(0, relevantList.items.length - 1);
+          relevantList.selected = (relevantList.selected - 1).clamp(
+            0,
+            relevantList.items.length - 1,
+          );
         });
-        _scroll.animateTo(
-          relevantList.selected * 56.0,
-          duration: Duration(milliseconds: 100),
-          curve: Curves.ease,
+        _scroll.scrollTo(
+          index: relevantList.selected,
+          duration: Duration(milliseconds: 200),
+          alignment: 0.38,
         );
+
       case LogicalKeyboardKey.keyS:
         setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyQ:
-        if (relevantList.selected >= 0 && relevantList.selected < relevantList.items.length) {
+        if (relevantList.selected >= 0 &&
+            relevantList.selected < relevantList.items.length) {
           var ctxUri = relevantList.items[relevantList.selected].ctxUri;
           makeNetworkCall(() {
             return queue(ctxUri, widget.token);
@@ -186,7 +196,8 @@ class _SearchState extends State<Search> {
         });
 
       case LogicalKeyboardKey.enter:
-        if (relevantList.selected >= 0 && relevantList.selected < relevantList.items.length) {
+        if (relevantList.selected >= 0 &&
+            relevantList.selected < relevantList.items.length) {
           var ctxUri = relevantList.items[relevantList.selected].ctxUri;
           playSelected(ctxUri);
         }
@@ -335,7 +346,7 @@ class _SearchState extends State<Search> {
               _flushDebounce();
               _keyNode.requestFocus();
               setState(() {
-                updateAllLists((list) => list.selected = 0 );
+                updateAllLists((list) => list.selected = 0);
               });
             },
             decoration: const InputDecoration(
@@ -359,8 +370,9 @@ class _SearchState extends State<Search> {
 
               return SizedBox(
                 height: 350,
-                child: ListView.builder(
-                  controller: _scroll,
+                child: ScrollablePositionedList.builder(
+                  physics: const ClampingScrollPhysics(),
+                  itemScrollController: _scroll,
                   itemCount: relevantList.items.length,
                   itemBuilder: (context, dynamic i) {
                     SearchItem info = relevantList.items[i];
