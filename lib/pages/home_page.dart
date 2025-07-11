@@ -68,9 +68,8 @@ class _HomePageState extends State<HomePage> {
                 deviceId = json["body"]["device_id"];
               });
             case "authenticationFailed":
-            default: 
+            default:
               debugPrint("unhandled function: ${json['func']}");
-
           }
         },
       );
@@ -152,24 +151,34 @@ class _HomePageState extends State<HomePage> {
                     Text(song, style: TextStyle(fontSize: 16)),
                     Text(artist, style: TextStyle(fontSize: 12)),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
+                        buildCircleButton(
+                          icon: Icons.shuffle,
+                          onPressed: _next,
+                          size: 40,
+                          backgroundColor: Colors.grey[700]!,
+                        ),
                         buildCircleButton(
                           icon: Icons.skip_previous,
                           onPressed: _prev,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,
                         ),
-                        SizedBox(width: 20),
                         buildCircleButton(
                           icon: isPlaying ? Icons.pause : Icons.play_arrow,
                           onPressed: _togglePlay,
                           size: 40,
                           backgroundColor: Colors.blue,
                         ),
-                        SizedBox(width: 20),
                         buildCircleButton(
                           icon: Icons.skip_next,
+                          onPressed: _next,
+                          size: 40,
+                          backgroundColor: Colors.grey[700]!,
+                        ),
+                        buildCircleButton(
+                          icon: Icons.repeat,
                           onPressed: _next,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,

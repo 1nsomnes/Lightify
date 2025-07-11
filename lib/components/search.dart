@@ -57,14 +57,14 @@ class _SearchState extends State<Search> {
 
   // TODO: maybe add loading when searching?
   // bool _isLoading = false;
-  SearchList _tracks = SearchList();
-  SearchList _playlists = SearchList();
-  SearchList _albums = SearchList();
+  final SearchList _tracks = SearchList();
+  final SearchList _playlists = SearchList();
+  final SearchList _albums = SearchList();
 
   // personal saved stuff.
-  SearchList _myTracks = SearchList();
-  SearchList _myPlaylists = SearchList();
-  SearchList _myAlbums = SearchList();
+  final SearchList _myTracks = SearchList();
+  final SearchList _myPlaylists = SearchList();
+  final SearchList _myAlbums = SearchList();
 
   late AuthProvider authProvider;
   late FlutterSecureStorage storage;
@@ -155,9 +155,12 @@ class _SearchState extends State<Search> {
           alignment: 0.38,
         );
 
-      case LogicalKeyboardKey.keyS:
+      case LogicalKeyboardKey.tab:
         setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();
+
+      case LogicalKeyboardKey.keyS:
+        
 
       case LogicalKeyboardKey.keyQ:
         if (relevantList.selected >= 0 &&

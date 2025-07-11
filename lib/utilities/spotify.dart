@@ -41,6 +41,15 @@ Future<http.Response> searchSpotify(
 
   return response;
 }
+
+//Future<http.Response> changeShuffle() async {
+//
+//}
+//
+//Future<http.Response> toggleRepeat() async {
+//
+//}
+
 Future<http.Response> getLikedPlaylists(
   int limit,
   int offset,
