@@ -27,6 +27,8 @@ Future<Uri> loopbackAuthorize({
       </html>
     ''')
     ..close();
+
+  await Future.delayed(Duration(seconds: 2));
   
   await server.close(force: true);
   
