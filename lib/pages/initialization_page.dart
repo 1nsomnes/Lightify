@@ -48,6 +48,11 @@ class _InitializationPageState extends State<InitializationPage> {
     final storage = FlutterSecureStorage();
     final token = await storage.read(key: "token");
     final refreshToken = await storage.read(key: "refresh_token");
+    
+    // make sure our SpotifyService (uses auth provider) has access to the tokens
+    // before any of the SpotifyService calls are made
+    if(token != null) authProvider.setToken(token);
+    if(refreshToken != null) authProvider.setToken(refreshToken);
 
     if (token != null) {
       final result = await isValidToken(token);
@@ -56,11 +61,11 @@ class _InitializationPageState extends State<InitializationPage> {
         authProvider.setIsAuthenticated(false);
       } else if (result == AuthError.valid) {
         authProvider.setIsAuthenticated(true);
-        authProvider.setToken(token);
       } else {
         return false; //some strange error has happened
       }
     } else if (refreshToken != null) {
+      
       attemptRefresh(refreshToken, authProvider, storage);
     } else {
       authProvider.setIsAuthenticated(false);

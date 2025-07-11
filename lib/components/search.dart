@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lightify/components/window_selection.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify.dart';
@@ -12,6 +13,7 @@ import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
+import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -68,6 +70,7 @@ class _SearchState extends State<Search> {
 
   late AuthProvider authProvider;
   late FlutterSecureStorage storage;
+  late SpotifyService spotifyService;
 
   @override
   void didChangeDependencies() {
@@ -76,7 +79,7 @@ class _SearchState extends State<Search> {
 
     makeNetworkCall(
       () {
-        return getLikedPlaylists(50, 0, widget.token);
+        return spotifyService.getLikedPlaylists(50, 0);
       },
       process: (body) {
         debugPrint("liked playlist");
@@ -109,7 +112,9 @@ class _SearchState extends State<Search> {
       _searchNode.requestFocus();
     });
 
-    storage = FlutterSecureStorage();
+    final getIt = GetIt.instance;
+    storage = getIt.get<FlutterSecureStorage>();
+    spotifyService = getIt.get<SpotifyService>();
   }
 
   @override
@@ -160,6 +165,7 @@ class _SearchState extends State<Search> {
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyS:
+        //TODO: add stuff here lol
         
 
       case LogicalKeyboardKey.keyQ:
@@ -167,7 +173,7 @@ class _SearchState extends State<Search> {
             relevantList.selected < relevantList.items.length) {
           var ctxUri = relevantList.items[relevantList.selected].ctxUri;
           makeNetworkCall(() {
-            return queue(ctxUri, widget.token);
+            return spotifyService.queue(ctxUri);
           });
         }
       case LogicalKeyboardKey.space:
@@ -270,13 +276,12 @@ class _SearchState extends State<Search> {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
         makeNetworkCall(() {
-          return playTracks([ctxUri], widget.token, deviceId: widget.deviceId);
+          return spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
         });
       } else {
         makeNetworkCall(() {
-          return playPlaylistOrAlbums(
+          return spotifyService.playPlaylistOrAlbums(
             ctxUri,
-            widget.token,
             deviceId: widget.deviceId,
           );
         });
@@ -296,7 +301,7 @@ class _SearchState extends State<Search> {
 
     SearchResult result = await makeNetworkCall(
       () {
-        return searchSpotify(query, 20, 0, widget.token);
+        return spotifyService.searchSpotify(query, 20, 0);
       },
       process: (String body) {
         return ProcessResponse.parseSearchResults(body);

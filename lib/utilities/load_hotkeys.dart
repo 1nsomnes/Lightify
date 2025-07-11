@@ -56,8 +56,8 @@ class LoadHotKeys {
       hardRestartKey,
       keyDownHandler: (_) async {
         final storage = FlutterSecureStorage();
-        await storage.delete(key:"token");
-        //await storage.deleteAll();
+        //await storage.delete(key:"token");
+        await storage.deleteAll();
         restart(); 
 
       },

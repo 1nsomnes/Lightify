@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lightify/providers/auth_provider.dart';
-import 'package:lightify/utilities/spotify.dart';
 import "package:http/http.dart" as http;
 import 'dart:convert';
+
+import 'package:lightify/utilities/spotify/spotify_service.dart';
 
 enum AuthError { valid, invalid, unknown }
 
@@ -15,7 +17,7 @@ enum AuthError { valid, invalid, unknown }
 // This link explains what these response codes mean, anything outside of the ones delineated below
 // are unexpected behavior and should return unkown status codes
 Future<AuthError> isValidToken(String token) async {
-  final response = await getPlaybackStateByToken(token);
+  final response = await GetIt.instance.get<SpotifyService>().getPlaybackState();
 
   if (response.statusCode == 200 || response.statusCode == 204) {
     return AuthError.valid;
