@@ -274,6 +274,7 @@ class _SearchState extends State<Search> {
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
+        //TODO: make sure you update the device id 
         makeNetworkCall(() {
           return spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
         });

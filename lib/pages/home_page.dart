@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _togglePlay() {
-  setState(() {
+    setState(() {
       playbackState.playing = !playbackState.playing;
     });
     _controller.runJavaScript("togglePlayback();");
@@ -123,6 +123,27 @@ class _HomePageState extends State<HomePage> {
 
   void _prev() {
     _controller.runJavaScript("previous();");
+  }
+
+  void _toggleShuffle() {
+    setState(() {
+      playbackState.shuffleState =
+          playbackState.shuffleState == ShuffleState.shuffleOff
+          ? ShuffleState.shuffleOn
+          : ShuffleState.shuffleOff;
+    });
+    spotifyService.setShuffleMode(playbackState.shuffleState);
+  }
+
+  void _switchRepeatMode() {
+    setState(() {
+      playbackState.repeatState =
+          playbackState.repeatState == RepeatState.repeatOff
+          ? RepeatState.repeatContext
+          : playbackState.repeatState == RepeatState.repeatContext
+          ? RepeatState.repeatOne
+          : RepeatState.repeatOff;
+    });
   }
 
   void _setPlaying(bool val) {
@@ -176,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                                   ShuffleState.shuffleOff
                               ? Icons.shuffle
                               : Icons.shuffle_on_rounded,
-                          onPressed: _next,
+                          onPressed: _toggleShuffle,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,
                         ),
@@ -208,7 +229,7 @@ class _HomePageState extends State<HomePage> {
                                     RepeatState.repeatOne
                               ? Icons.repeat_one
                               : Icons.repeat_on,
-                          onPressed: _next,
+                          onPressed: _switchRepeatMode,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,
                         ),

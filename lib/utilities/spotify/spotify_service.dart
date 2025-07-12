@@ -101,6 +101,30 @@ class SpotifyService {
     return response;
   }
 
+  Future<http.Response> setShuffleMode(
+    ShuffleState shuffleState, {
+    String deviceId = "",
+  }) async {
+    final token = _authProvider.getToken;
+    Uri url = Uri.parse(
+      "https://api.spotify.com/v1/me/player/shuffle",
+    );
+    url = url.replace(queryParameters: {"state": shuffleState.value});
+    if (deviceId.isNotEmpty) {
+      url = url.replace(
+        queryParameters: {"state": shuffleState.value, "device_id": deviceId},
+      );
+    }
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    debugPrint("response: ${response.body}");
+
+    return response;
+  }
+
   Future<http.Response> getPlaybackState({notifyListeners = true}) async {
     final token = _authProvider.getToken;
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');
@@ -144,7 +168,7 @@ class SpotifyService {
       _ => RepeatState.repeatOne,
     };
     ShuffleState shuffleState = switch (json["shuffle_mode"]) {
-      true => ShuffleState.shuffleOn,
+      1 => ShuffleState.shuffleOn,
       _ => ShuffleState.shuffleOff,
     };
 

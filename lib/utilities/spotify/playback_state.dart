@@ -1,11 +1,26 @@
-enum RepeatState { repeatOff, repeatOne, repeatContext }
+enum RepeatState {
+  repeatOff("0"),
+  repeatOne("1"),
+  repeatContext("2");
 
-enum ShuffleState { shuffleOn, shuffleOff }
+  final String value;
+
+  const RepeatState(this.value);
+}
+
+enum ShuffleState {
+  shuffleOn("true"),
+  shuffleOff("false");
+
+  final String value;
+
+  const ShuffleState(this.value);
+}
 
 class PlaybackState {
   bool playing;
-  final ShuffleState shuffleState;
-  final RepeatState repeatState;
+  ShuffleState shuffleState;
+  RepeatState repeatState;
 
   PlaybackState({
     required this.playing,
