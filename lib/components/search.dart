@@ -27,6 +27,8 @@ class Search extends StatefulWidget {
     required this.pause,
     required this.setPlaying,
     required this.updateToken,
+    required this.toggleRepeat,
+    required this.toggleShuffle,
   });
 
   final String token;
@@ -36,6 +38,8 @@ class Search extends StatefulWidget {
   final Function prev;
   final Function pause;
   final Function updateToken;
+  final Function toggleRepeat;
+  final Function toggleShuffle;
 
   final Function setPlaying;
 
@@ -164,8 +168,10 @@ class _SearchState extends State<Search> {
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyS:
-        //TODO: add stuff here lol
-        
+        widget.toggleShuffle();
+
+      case LogicalKeyboardKey.keyR:
+        widget.toggleRepeat();
 
       case LogicalKeyboardKey.keyQ:
         if (relevantList.selected >= 0 &&
@@ -274,7 +280,7 @@ class _SearchState extends State<Search> {
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
-        //TODO: make sure you update the device id 
+        //TODO: make sure you update the device id
         makeNetworkCall(() {
           return spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
         });

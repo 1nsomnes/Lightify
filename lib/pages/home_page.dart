@@ -252,6 +252,8 @@ class _HomePageState extends State<HomePage> {
             skip: _next,
             setPlaying: _setPlaying,
             updateToken: _updateToken,
+            toggleRepeat: _switchRepeatMode,
+            toggleShuffle: _toggleShuffle,
           ),
         ],
       ),
