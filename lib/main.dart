@@ -21,6 +21,8 @@ class BlurWindowListener with WindowListener {
 
 void main() async {
 
+  WidgetsFlutterBinding.ensureInitialized();
+
   // ensure these all started so any service that may need them will be able to
   final getIt = GetIt.instance;
   AuthProvider authProvider = AuthProvider();
@@ -32,8 +34,6 @@ void main() async {
     () => SpotifyService(authProvider: authProvider, storage: storage),
   );
 
-
-  WidgetsFlutterBinding.ensureInitialized();
 
   await hotKeyManager.unregisterAll();
   await windowManager.ensureInitialized();

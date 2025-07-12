@@ -2,8 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
+import 'package:lightify/utilities/spotify/playback_state.dart';
+import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
@@ -19,6 +22,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
+  late final SpotifyService spotifyService;
   String deviceId = "";
 
   Future<void> loadHtmlFromAssets(BuildContext context) async {
@@ -35,6 +39,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    spotifyService = GetIt.instance.get<SpotifyService>();
+    spotifyService.onPlaybackStateChanged.listen((state) {
+      setState(() {
+        playbackState = state;
+      });
+    });
 
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
@@ -80,6 +91,8 @@ class _HomePageState extends State<HomePage> {
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
   }
 
+  void setPlaybackState(PlaybackState playbackState) {}
+
   void _updateData(dynamic json) {
     setState(() {
       //TODO: investigate better error handling
@@ -87,13 +100,12 @@ class _HomePageState extends State<HomePage> {
       song = json["name"];
       imgurl = json["album"]["images"][2]["url"];
     });
+
+    spotifyService.getPlaybackState();
     return;
   }
 
   void _togglePlay() {
-    setState(() {
-      isPlaying = !isPlaying;
-    });
     _controller.runJavaScript("togglePlayback();");
   }
 
@@ -114,14 +126,18 @@ class _HomePageState extends State<HomePage> {
 
   void _setPlaying(bool val) {
     setState(() {
-      isPlaying = val;
+      playbackState.playing = val;
     });
   }
 
   String song = "Unkown Song";
   String artist = "Unkown Artist";
   String imgurl = "null";
-  bool isPlaying = false;
+  PlaybackState playbackState = PlaybackState(
+    playing: false,
+    shuffleState: ShuffleState.shuffleOff,
+    repeatState: RepeatState.repeatOff,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +170,11 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         buildCircleButton(
-                          icon: Icons.shuffle,
+                          icon:
+                              playbackState.shuffleState ==
+                                  ShuffleState.shuffleOff
+                              ? Icons.shuffle
+                              : Icons.shuffle_on_rounded,
                           onPressed: _next,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,
@@ -166,7 +186,9 @@ class _HomePageState extends State<HomePage> {
                           backgroundColor: Colors.grey[700]!,
                         ),
                         buildCircleButton(
-                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                          icon: playbackState.playing
+                              ? Icons.pause
+                              : Icons.play_arrow,
                           onPressed: _togglePlay,
                           size: 40,
                           backgroundColor: Colors.blue,
@@ -178,7 +200,13 @@ class _HomePageState extends State<HomePage> {
                           backgroundColor: Colors.grey[700]!,
                         ),
                         buildCircleButton(
-                          icon: Icons.repeat,
+                          icon:
+                              playbackState.repeatState == RepeatState.repeatOff
+                              ? Icons.repeat
+                              : playbackState.repeatState ==
+                                    RepeatState.repeatOne
+                              ? Icons.repeat_one
+                              : Icons.repeat_on,
                           onPressed: _next,
                           size: 40,
                           backgroundColor: Colors.grey[700]!,

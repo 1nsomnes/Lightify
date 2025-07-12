@@ -1,19 +1,28 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import "package:http/http.dart" as http;
+import 'package:lightify/utilities/spotify/playback_state.dart';
 
 class SpotifyService {
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
+
+  final _playbackStateCtrl = StreamController<PlaybackState>.broadcast();
+  Stream<PlaybackState> get onPlaybackStateChanged => _playbackStateCtrl.stream;
 
   SpotifyService({
     required FlutterSecureStorage storage,
     required AuthProvider authProvider,
   }) : _storage = storage,
        _authProvider = authProvider;
+
+  void dispose() {
+    _playbackStateCtrl.close();
+  }
 
   Future<http.Response> searchSpotify(
     String query,
@@ -33,18 +42,6 @@ class SpotifyService {
     final response = await http.get(
       url,
 
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    return response;
-  }
-
-  Future<http.Response> getPlaybackState() async {
-    final token = _authProvider.getToken;
-    final uri = Uri.parse('https://api.spotify.com/v1/me/player');
-
-    final response = await http.get(
-      uri,
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -104,7 +101,10 @@ class SpotifyService {
     return response;
   }
 
-  Future<http.Response> getPlaybackStateByToken() async {
+  Future<http.Response> getPlaybackState({
+    notifyListeners = true,
+  }) async {
+
     final token = _authProvider.getToken;
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');
 
@@ -112,6 +112,30 @@ class SpotifyService {
       uri,
       headers: {'Authorization': 'Bearer $token'},
     );
+
+    if (response.statusCode == 200 && notifyListeners) {
+      var json = jsonDecode(response.body);
+
+      RepeatState repeatState = switch (json["repeat_state"]) {
+        "off" => RepeatState.repeatOff,
+        "context" => RepeatState.repeatContext,
+        _ => RepeatState.repeatOne,
+      };
+      ShuffleState shuffleState = switch (json["shuffle_state"]) {
+        true => ShuffleState.shuffleOn,
+        _ => ShuffleState.shuffleOff,
+      };
+
+      bool isPlaying = json["is_playing"] == true ? true : false;
+
+      PlaybackState playbackState = PlaybackState(
+        playing: isPlaying,
+        shuffleState: shuffleState,
+        repeatState: repeatState,
+      );
+
+      _playbackStateCtrl.add(playbackState);
+    }
 
     return response;
   }
