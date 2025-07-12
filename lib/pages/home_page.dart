@@ -116,7 +116,8 @@ class _HomePageState extends State<HomePage> {
     await _controller.runJavaScript(setTokenString);
     await _controller.runJavaScript("reconnect();");
   }
-
+  
+  //TODO: one repeat mode is overriden by skip and prev, maybe fix that? 
   void _next() {
     _controller.runJavaScript("next();");
   }
@@ -144,6 +145,9 @@ class _HomePageState extends State<HomePage> {
           ? RepeatState.repeatOne
           : RepeatState.repeatOff;
     });
+
+
+    spotifyService.setRepeatMode(playbackState.repeatState);
   }
 
   void _setPlaying(bool val) {

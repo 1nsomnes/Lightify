@@ -125,6 +125,30 @@ class SpotifyService {
     return response;
   }
 
+  Future<http.Response> setRepeatMode(
+    RepeatState repeatState, {
+    String deviceId = "",
+  }) async {
+    final token = _authProvider.getToken;
+    Uri url = Uri.parse(
+      "https://api.spotify.com/v1/me/player/repeat",
+    );
+    url = url.replace(queryParameters: {"state": repeatState.value});
+    if (deviceId.isNotEmpty) {
+      url = url.replace(
+        queryParameters: {"state": repeatState.value, "device_id": deviceId},
+      );
+    }
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    debugPrint("response: ${response.body}");
+
+    return response;
+  }
+
   Future<http.Response> getPlaybackState({notifyListeners = true}) async {
     final token = _authProvider.getToken;
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');

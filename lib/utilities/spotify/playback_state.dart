@@ -1,7 +1,7 @@
 enum RepeatState {
-  repeatOff("0"),
-  repeatOne("1"),
-  repeatContext("2");
+  repeatOff("off"),
+  repeatOne("track"),
+  repeatContext("context");
 
   final String value;
 
