@@ -7,7 +7,6 @@ import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
-import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -74,6 +73,8 @@ class _HomePageState extends State<HomePage> {
           switch (json['func']) {
             case "updateData":
               _updateData(json["body"]);
+            case "updateDataFromPlayer":
+              spotifyService.processStateFromPlayer(json["body"]);
             case "setDeviceId":
               setState(() {
                 deviceId = json["body"]["device_id"];
@@ -91,21 +92,21 @@ class _HomePageState extends State<HomePage> {
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
   }
 
-  void setPlaybackState(PlaybackState playbackState) {}
-
   void _updateData(dynamic json) {
+    //debugPrint("data updated: $json");
     setState(() {
       //TODO: investigate better error handling
       artist = json["artists"][0]["name"];
       song = json["name"];
       imgurl = json["album"]["images"][2]["url"];
     });
-
-    spotifyService.getPlaybackState();
     return;
   }
 
   void _togglePlay() {
+  setState(() {
+      playbackState.playing = !playbackState.playing;
+    });
     _controller.runJavaScript("togglePlayback();");
   }
 

@@ -101,10 +101,7 @@ class SpotifyService {
     return response;
   }
 
-  Future<http.Response> getPlaybackState({
-    notifyListeners = true,
-  }) async {
-
+  Future<http.Response> getPlaybackState({notifyListeners = true}) async {
     final token = _authProvider.getToken;
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');
 
@@ -138,6 +135,28 @@ class SpotifyService {
     }
 
     return response;
+  }
+
+  void processStateFromPlayer(Map<String, dynamic> json) {
+    RepeatState repeatState = switch (json["repeat_mode"]) {
+      0 => RepeatState.repeatOff,
+      1 => RepeatState.repeatContext,
+      _ => RepeatState.repeatOne,
+    };
+    ShuffleState shuffleState = switch (json["shuffle_mode"]) {
+      true => ShuffleState.shuffleOn,
+      _ => ShuffleState.shuffleOff,
+    };
+
+    bool isPlaying = json["paused"] == false ? true : false;
+
+    PlaybackState playbackState = PlaybackState(
+      playing: isPlaying,
+      shuffleState: shuffleState,
+      repeatState: repeatState,
+    );
+
+    _playbackStateCtrl.add(playbackState);
   }
 
   Future<http.Response> getLikedPlaylists(int limit, int offset) async {

@@ -55,13 +55,29 @@
         duration,
         track_window: {current_track}
       }) => {
+
+        //TODO: possibly remove this update
         current_track["position_ms"] = position;
         return_object = {
           func: "updateData",
           body: current_track
         };
+
         FlutterHost.postMessage(JSON.stringify(return_object));
-        //console.log('Currently Playing', current_track);
+
+        window.spotifyPlayer.getCurrentState().then(state => {
+          if (!state) {
+            console.log("no state")
+            return;
+          }
+
+          return_object = {
+            func: "updateDataFromPlayer",
+            body: state
+          };
+
+          FlutterHost.postMessage(JSON.stringify(return_object));
+        })
       });
 
       player.connect();
