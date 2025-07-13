@@ -6,17 +6,12 @@
 
   <script>
 
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      window.token = '{token}';
-
-      console.log("current token = " + token)
-      const player = new Spotify.Player({
-        name: 'Lightify',
-        getOAuthToken: cb => {cb(window.token);},
-        volume: 1
-      });
-      console.log("spotify play back ready")
+    function registerListeners(player) {
+      player.removeListener('ready')
+      player.removeListener('not_ready')
+      player.removeListener('initialization_error')
+      player.removeListener('authentication_error')
+      player.removeListener('player_state_changed')
 
       player.addListener('ready', ({device_id}) => {
         console.log("ready with id " + device_id)
@@ -80,6 +75,21 @@
         })
       });
 
+    }
+
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      window.token = '{token}';
+
+      console.log("current token = " + token)
+      const player = new Spotify.Player({
+        name: 'Lightify',
+        getOAuthToken: cb => {cb(window.token);},
+        volume: 1
+      });
+      console.log("spotify play back ready")
+
+      registerListeners(player);
       player.connect();
     }
 
@@ -101,6 +111,10 @@
 
     function reconnect() {
       console.log("Reconnect");
+      window.spotifyPlayer.disconnect();
+
+      registerListeners(window.spotifyPlayer);
+
       window.spotifyPlayer.connect();
     }
 

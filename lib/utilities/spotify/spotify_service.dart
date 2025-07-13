@@ -9,7 +9,6 @@ import 'package:lightify/utilities/spotify/playback_state.dart';
 
 class SpotifyService {
   final FlutterSecureStorage _storage;
-  final AuthProvider _authProvider;
 
   String token = "";
   String refreshToken = "";
@@ -19,9 +18,7 @@ class SpotifyService {
 
   SpotifyService({
     required FlutterSecureStorage storage,
-    required AuthProvider authProvider,
-  }) : _storage = storage,
-       _authProvider = authProvider;
+  }) : _storage = storage;
 
   void dispose() {
     _playbackStateCtrl.close();
