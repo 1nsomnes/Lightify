@@ -11,6 +11,9 @@ class SpotifyService {
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
 
+  String token = "";
+  String refreshToken = "";
+ 
   final _playbackStateCtrl = StreamController<PlaybackState>.broadcast();
   Stream<PlaybackState> get onPlaybackStateChanged => _playbackStateCtrl.stream;
 
@@ -29,7 +32,6 @@ class SpotifyService {
     int limit,
     int offset,
   ) async {
-    final token = _authProvider.getToken;
     final url = Uri.parse("https://api.spotify.com/v1/search").replace(
       queryParameters: {
         "q": query,
@@ -52,7 +54,6 @@ class SpotifyService {
     List<String> uris, {
     String deviceId = "",
   }) async {
-    final token = _authProvider.getToken;
 
     Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
     if (deviceId.isNotEmpty) {
@@ -79,7 +80,6 @@ class SpotifyService {
     String uri, {
     String deviceId = "",
   }) async {
-    final token = _authProvider.getToken;
     Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
     if (deviceId.isNotEmpty) {
       url = url.replace(queryParameters: {"device_id": deviceId});
@@ -105,7 +105,6 @@ class SpotifyService {
     ShuffleState shuffleState, {
     String deviceId = "",
   }) async {
-    final token = _authProvider.getToken;
     Uri url = Uri.parse(
       "https://api.spotify.com/v1/me/player/shuffle",
     );
@@ -129,7 +128,6 @@ class SpotifyService {
     RepeatState repeatState, {
     String deviceId = "",
   }) async {
-    final token = _authProvider.getToken;
     Uri url = Uri.parse(
       "https://api.spotify.com/v1/me/player/repeat",
     );
@@ -150,7 +148,6 @@ class SpotifyService {
   }
 
   Future<http.Response> getPlaybackState({notifyListeners = true}) async {
-    final token = _authProvider.getToken;
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');
 
     final response = await http.get(
@@ -208,7 +205,6 @@ class SpotifyService {
   }
 
   Future<http.Response> getLikedPlaylists(int limit, int offset) async {
-    final token = _authProvider.getToken;
     final url = Uri.parse("https://api.spotify.com/v1/me/playlists").replace(
       queryParameters: {"limit": limit.toString(), "offset": offset.toString()},
     );
@@ -223,7 +219,6 @@ class SpotifyService {
   }
 
   Future<http.Response> queue(String uri, {String deviceId = ""}) async {
-    final token = _authProvider.getToken;
     Uri url = Uri.parse("https://api.spotify.com/v1/me/player/queue");
     if (deviceId.isNotEmpty) {
       url = url.replace(queryParameters: {"uri": uri, "device_id": deviceId});

@@ -20,7 +20,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 class Search extends StatefulWidget {
   const Search({
     super.key,
-    required this.token,
     required this.deviceId,
     required this.skip,
     required this.prev,
@@ -31,7 +30,6 @@ class Search extends StatefulWidget {
     required this.toggleShuffle,
   });
 
-  final String token;
   final String deviceId;
 
   final Function skip;
@@ -90,7 +88,7 @@ class _SearchState extends State<Search> {
         final json = jsonDecode(body);
         //debugPrint("items: " + json["total"].toString());
         //debugPrint(json.toString());
-        debugPrint("token: ${widget.token}");
+        //debugPrint("token: ${widget.token}");
         for (dynamic playlist in json["items"]) {
           //debugPrint("\n");
           //debugPrint(playlist.toString());
@@ -259,14 +257,14 @@ class _SearchState extends State<Search> {
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
       if (await attemptRefresh(
-        authProvider.getRefreshToken,
+        spotifyService.refreshToken,
         authProvider,
         storage,
       )) {
         debugPrint(
           "Successfully refreshed token, attempting to reinject token",
         );
-        widget.updateToken(authProvider.getToken);
+        widget.updateToken(spotifyService.token);
       }
     } else if (response.statusCode == 200) {
     } else {}

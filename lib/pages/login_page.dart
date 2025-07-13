@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/loopback.dart';
+import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -25,6 +27,7 @@ class LoginPage extends StatelessWidget {
 
           Map<String, dynamic> json = await debugRequestToken(code);
           String token = json["access_token"];
+          SpotifyService spotifyService = GetIt.instance.get<SpotifyService>();
 
           if (context.mounted) {
             final authProvider = Provider.of<AuthProvider>(
@@ -39,10 +42,10 @@ class LoginPage extends StatelessWidget {
             if (json.containsKey("refresh_token")) {
               String refreshToken = json["refresh_token"];
               await storage.write(key: "refresh_token", value: refreshToken);
-              authProvider.setRefreshToken(refreshToken);
+              spotifyService.refreshToken = refreshToken;
             }
-
-            authProvider.setToken(token);
+            
+            spotifyService.token = token;
             authProvider.setIsAuthenticated(true);
           }
         },

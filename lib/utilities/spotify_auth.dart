@@ -61,6 +61,7 @@ Future<bool> attemptRefresh(
   AuthProvider authProvider,
   FlutterSecureStorage storage,
 ) async {
+  SpotifyService spotifyService = GetIt.instance.get<SpotifyService>();
 
   final refreshResponse = await requestTokenFromRefresh(refreshToken);
   debugPrint("Attempting to refresh tokens");
@@ -73,12 +74,12 @@ Future<bool> attemptRefresh(
   final String newToken = refreshResponse["access_token"];
   await storage.write(key: "token", value: newToken);
   authProvider.setIsAuthenticated(true);
-  authProvider.setToken(newToken);
+  spotifyService.token = newToken;
 
   if (refreshResponse.containsKey("refresh_token")) {
     String refreshToken = refreshResponse["refresh_token"];
     await storage.write(key: "refreshToken", value: refreshToken);
-    authProvider.setRefreshToken(refreshToken);
+    spotifyService.refreshToken = refreshToken;
   }
 
   return true;

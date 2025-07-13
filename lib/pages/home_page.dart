@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
     if (context.mounted) {
       html = html.replaceAll(
         "{token}",
-        Provider.of<AuthProvider>(context, listen: false).getToken,
+        spotifyService.token,
       );
       _controller.loadHtmlString(html);
     }
@@ -245,7 +245,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           Search(
-            token: Provider.of<AuthProvider>(context).getToken,
             deviceId: deviceId,
             pause: _togglePlay,
             prev: _prev,

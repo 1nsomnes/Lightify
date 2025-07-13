@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/home_page.dart';
 import 'package:lightify/pages/loading_page.dart';
 import 'package:lightify/pages/login_page.dart';
@@ -6,6 +7,7 @@ import 'package:lightify/providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/providers/theme/darkTheme.dart';
 import 'package:lightify/utilities/load_hotkeys.dart';
+import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -18,19 +20,23 @@ class InitializationPage extends StatefulWidget {
 
 class _InitializationPageState extends State<InitializationPage> {
   late Future<bool> _future;
+  late SpotifyService spotifyService;
 
   @override
   void initState() {
     super.initState();
 
     LoadHotKeys.loadHotKeys(restart);
+    spotifyService = GetIt.instance.get<SpotifyService>();
     _runFuture();
   }
 
   void _runFuture() {
     _future = initializeApp(context);
   }
+  
 
+  // this restarts the intializaiton phase the hot keys need this funciton
   void restart() {
     setState(_runFuture);
   }
@@ -51,8 +57,8 @@ class _InitializationPageState extends State<InitializationPage> {
     
     // make sure our SpotifyService (uses auth provider) has access to the tokens
     // before any of the SpotifyService calls are made
-    if(token != null) authProvider.setToken(token);
-    if(refreshToken != null) authProvider.setRefreshToken(refreshToken);
+    if(token != null) spotifyService.token = token;
+    if(refreshToken != null) spotifyService.refreshToken = refreshToken;
 
     if (token != null) {
       final result = await isValidToken(token);
