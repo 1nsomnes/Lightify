@@ -1,7 +1,7 @@
 part of '../spotify_service.dart';
 
 extension Player on SpotifyService {
-  Future<http.Response> playPlaylistOrAlbums(
+  Future<http_lib.Response> playPlaylistOrAlbums(
     String uri, {
     String deviceId = "",
   }) async {
@@ -26,7 +26,7 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http.Response> setShuffleMode(
+  Future<http_lib.Response> setShuffleMode(
     ShuffleState shuffleState, {
     String deviceId = "",
   }) async {
@@ -47,7 +47,7 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http.Response> setRepeatMode(
+  Future<http_lib.Response> setRepeatMode(
     RepeatState repeatState, {
     String deviceId = "",
   }) async {
@@ -68,7 +68,7 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http.Response> getPlaybackState({notifyListeners = true}) async {
+  Future<http_lib.Response> getPlaybackState({notifyListeners = true}) async {
     final uri = Uri.parse('https://api.spotify.com/v1/me/player');
 
     final response = await http.get(
@@ -125,7 +125,7 @@ extension Player on SpotifyService {
     _playbackStateCtrl.add(playbackState);
   }
 
-  Future<http.Response> getLikedPlaylists(int limit, int offset) async {
+  Future<http_lib.Response> getLikedPlaylists(int limit, int offset) async {
     final url = Uri.parse("https://api.spotify.com/v1/me/playlists").replace(
       queryParameters: {"limit": limit.toString(), "offset": offset.toString()},
     );
@@ -139,7 +139,7 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http.Response> queue(String uri, {String deviceId = ""}) async {
+  Future<http_lib.Response> queue(String uri, {String deviceId = ""}) async {
     Uri url = Uri.parse("https://api.spotify.com/v1/me/player/queue");
     if (deviceId.isNotEmpty) {
       url = url.replace(queryParameters: {"uri": uri, "device_id": deviceId});
@@ -156,7 +156,7 @@ extension Player on SpotifyService {
 
     return response;
   }
-  Future<http.Response> searchSpotify(
+  Future<http_lib.Response> searchSpotify(
     String query,
     int limit,
     int offset,
@@ -179,7 +179,7 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http.Response> playTracks(
+  Future<http_lib.Response> playTracks(
     List<String> uris, {
     String deviceId = "",
   }) async {
