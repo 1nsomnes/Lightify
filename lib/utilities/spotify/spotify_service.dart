@@ -13,7 +13,7 @@ part 'service_parts/player.dart';
 part 'service_parts/auth.dart';
 
 class SpotifyService {
-  final SpotifyHttpClient http;
+  late final SpotifyHttpClient http;
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
 
@@ -27,12 +27,15 @@ class SpotifyService {
     required FlutterSecureStorage storage,
     required AuthProvider authProvider,
   }) : _storage = storage,
-       _authProvider = authProvider,
-       http = SpotifyHttpClient(
-         onUnauthorized: () async {
-            debugPrint("had a problem with the token");
-         },
-       );
+       _authProvider = authProvider {
+    http = SpotifyHttpClient(
+      onUnauthorized: () async {
+        debugPrint("HTTP Client had a problem with the token");
+      },
+      spotifyService: this
+
+    );
+  }
 
   void dispose() {
     _playbackStateCtrl.close();
