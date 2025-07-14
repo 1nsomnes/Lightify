@@ -5,7 +5,6 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/loopback.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
-import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
 final Uri url = Uri.parse(
@@ -20,14 +19,14 @@ class LoginPage extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () async {
+          SpotifyService spotifyService = GetIt.instance.get<SpotifyService>();
           var promise = loopbackAuthorize(authorizeUrl: url);
           var result = await promise;
 
           String code = result.toString().split("code=").last;
 
-          Map<String, dynamic> json = await debugRequestToken(code);
+          Map<String, dynamic> json = await spotifyService.debugRequestToken(code);
           String token = json["access_token"];
-          SpotifyService spotifyService = GetIt.instance.get<SpotifyService>();
 
           if (context.mounted) {
             final authProvider = Provider.of<AuthProvider>(

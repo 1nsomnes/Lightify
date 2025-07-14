@@ -8,7 +8,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/providers/theme/darkTheme.dart';
 import 'package:lightify/utilities/load_hotkeys.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
-import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 
 class InitializationPage extends StatefulWidget {
@@ -61,7 +60,7 @@ class _InitializationPageState extends State<InitializationPage> {
     if(refreshToken != null) spotifyService.refreshToken = refreshToken;
 
     if (token != null) {
-      final result = await isValidToken(token);
+      final result = await spotifyService.isValidToken(token);
 
       if (result == AuthError.invalid) {
         authProvider.setIsAuthenticated(false);
@@ -72,7 +71,7 @@ class _InitializationPageState extends State<InitializationPage> {
       }
     } else if (refreshToken != null) {
       
-      attemptRefresh(refreshToken, authProvider, storage);
+      spotifyService.attemptRefresh();
     } else {
       authProvider.setIsAuthenticated(false);
     }

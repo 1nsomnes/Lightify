@@ -13,7 +13,6 @@ import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
-import 'package:lightify/utilities/spotify_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -256,11 +255,7 @@ class _SearchState extends State<Search> {
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
-      if (await attemptRefresh(
-        spotifyService.refreshToken,
-        authProvider,
-        storage,
-      )) {
+      if (await spotifyService.attemptRefresh()) {
         debugPrint(
           "Successfully refreshed token, attempting to reinject token",
         );
