@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     spotifyService = GetIt.instance.get<SpotifyService>();
+    spotifyService.updatePlayerToken = _updateToken;
     spotifyService.onPlaybackStateChanged.listen((state) {
       setState(() {
         playbackState = state;

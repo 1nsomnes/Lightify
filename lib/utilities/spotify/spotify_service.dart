@@ -16,6 +16,7 @@ class SpotifyService {
   late final SpotifyHttpClient http;
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
+  late Function? updatePlayerToken;
 
   String token = "";
   String refreshToken = "";
