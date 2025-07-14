@@ -8,8 +8,6 @@ import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
-import 'package:lightify/providers/auth_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class HomePage extends StatefulWidget {
@@ -68,7 +66,7 @@ class _HomePageState extends State<HomePage> {
           //debugPrint("Received following message: ${msg.message}");
           final json = jsonDecode(msg.message);
 
-          //debugPrint("Received following command: " + json['func']);
+          //debugPrint("Received following command: ${json['func']}");
 
           switch (json['func']) {
             case "updateData":

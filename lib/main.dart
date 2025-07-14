@@ -31,7 +31,7 @@ void main() async {
   getIt.registerLazySingleton(() => storage);
 
   getIt.registerLazySingleton<SpotifyService>(
-    () => SpotifyService(storage: storage),
+    () => SpotifyService(authProvider: authProvider,storage: storage),
   );
 
 
