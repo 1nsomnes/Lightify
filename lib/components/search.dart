@@ -174,9 +174,8 @@ class _SearchState extends State<Search> {
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
           var ctxUri = relevantList.items[relevantList.selected].ctxUri;
-          makeNetworkCall(() {
-            return spotifyService.queue(ctxUri);
-          });
+
+          spotifyService.queue(ctxUri);
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -274,16 +273,9 @@ class _SearchState extends State<Search> {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
         //TODO: make sure you update the device id
-        makeNetworkCall(() {
-          return spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
-        });
+        spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
       } else {
-        makeNetworkCall(() {
-          return spotifyService.playPlaylistOrAlbums(
-            ctxUri,
-            deviceId: widget.deviceId,
-          );
-        });
+        spotifyService.playPlaylistOrAlbums(ctxUri, deviceId: widget.deviceId);
       }
 
       widget.setPlaying(true);
@@ -298,20 +290,16 @@ class _SearchState extends State<Search> {
       });
     });
 
-    SearchResult result = await makeNetworkCall(
-      () {
-        return spotifyService.searchSpotify(query, 20, 0);
-      },
-      process: (String body) {
-        return ProcessResponse.parseSearchResults(body);
-      },
-    );
-
-    setState(() {
-      _albums.items = result.albums;
-      _playlists.items = result.playlists;
-      _tracks.items = result.tracks;
-    });
+    var response = await spotifyService.searchSpotify(query, 20, 0);
+    debugPrint(response.body);
+    if (response.statusCode == 200) {
+      SearchResult result = ProcessResponse.parseSearchResults(response.body);
+      setState(() {
+        _albums.items = result.albums;
+        _playlists.items = result.playlists;
+        _tracks.items = result.tracks;
+      });
+    }
   }
 
   void _search() async {
