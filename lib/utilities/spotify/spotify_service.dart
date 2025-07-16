@@ -43,11 +43,12 @@ class SpotifyService {
       //LogInterceptor(requestBody: true, responseBody: true),
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
+          var opts = error.requestOptions;
           if (error.response?.statusCode == 401) {
-            if (await attemptRefresh()) {
+            if (opts.extra["__retry"] != true && await attemptRefresh()) {
               try {
-                var opts = error.requestOptions;
                 opts.headers["Authorization"] = "Bearer $_token";
+                opts.extra["__retry"] = true;
                 final cloneReq = await dio.fetch(opts);
                 return handler.resolve(cloneReq);
               } finally {
