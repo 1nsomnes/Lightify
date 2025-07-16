@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,11 +14,11 @@ part 'service_parts/player.dart';
 part 'service_parts/auth.dart';
 
 class SpotifyService {
-  late final SpotifyHttpClient http;
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
   late Function? updatePlayerToken;
-
+  late final SpotifyHttpClient http;
+  late final Dio dio;
 
   final _playbackStateCtrl = StreamController<PlaybackState>.broadcast();
   Stream<PlaybackState> get onPlaybackStateChanged => _playbackStateCtrl.stream;
@@ -31,9 +32,34 @@ class SpotifyService {
       onUnauthorized: () async {
         debugPrint("HTTP Client had a problem with the token");
       },
-      spotifyService: this
-
+      spotifyService: this,
     );
+
+    dio = Dio(
+      BaseOptions(baseUrl: "https://api.spotify.com/v1/", headers: {'Authorization': 'Bearer $_token'}),
+    );
+
+    dio.interceptors.addAll([
+      //LogInterceptor(requestBody: true, responseBody: true),
+      InterceptorsWrapper(
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          if (error.response?.statusCode == 401) {
+            if (await attemptRefresh()) {
+              try {
+                var opts = error.requestOptions;
+                opts.headers["Authorization"] = "Bearer $_token";
+                final cloneReq = await dio.fetch(opts);
+                return handler.resolve(cloneReq);
+              } finally {
+                return handler.next(error);
+              }
+            }
+          }
+
+          return handler.next(error);
+        },
+      ),
+    ]);
   }
 
   String _token = "";
@@ -44,6 +70,7 @@ class SpotifyService {
 
   void setToken(String token) {
     _token = token;
+    dio.options.headers["Authorization"] = "Bearer $token";
   }
 
   void setRefreshToken(String refreshToken) {

@@ -33,7 +33,7 @@ extension Auth on SpotifyService {
     final String newToken = refreshResponse["access_token"];
     await _storage.write(key: "token", value: newToken);
     _authProvider.setIsAuthenticated(true);
-    _token = newToken;
+    setToken(newToken);
     updatePlayerToken!(_token);
 
     if (refreshResponse.containsKey("refresh_token")) {

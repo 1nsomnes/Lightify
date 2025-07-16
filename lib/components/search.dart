@@ -290,10 +290,9 @@ class _SearchState extends State<Search> {
       });
     });
 
-    var response = await spotifyService.searchSpotify(query, 20, 0);
-    debugPrint(response.body);
+    var response = await spotifyService.searchSpotify(query, 30, 0);
     if (response.statusCode == 200) {
-      SearchResult result = ProcessResponse.parseSearchResults(response.body);
+      SearchResult result = ProcessResponse.parseSearchResults(response.data);
       setState(() {
         _albums.items = result.albums;
         _playlists.items = result.playlists;

@@ -5,8 +5,7 @@ import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 
 class ProcessResponse {
-  static SearchResult parseSearchResults(String body) {
-    final json = jsonDecode(body);
+  static SearchResult parseSearchResults(dynamic json) {
 
     List<dynamic> tracks = json["tracks"]["items"];
     List<dynamic> albums = json["albums"]["items"];

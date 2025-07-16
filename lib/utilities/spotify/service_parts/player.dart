@@ -156,24 +156,17 @@ extension Player on SpotifyService {
 
     return response;
   }
-  Future<http_lib.Response> searchSpotify(
-    String query,
-    int limit,
-    int offset,
-  ) async {
-    final url = Uri.parse("https://api.spotify.com/v1/search").replace(
+
+  Future<Response> searchSpotify(String query, int limit, int offset) async {
+
+    final response = await dio.get(
+      "search",
       queryParameters: {
-        "q": query,
-        "type": "track,album,playlist",
-        "limit": limit.toString(),
-        "offset": offset.toString(),
+        'q': query,
+        'type': 'track,album,playlist',
+        'limit': limit,
+        'offset': offset,
       },
-    );
-
-    final response = await http.get(
-      url,
-
-      headers: {'Authorization': 'Bearer $_token'},
     );
 
     return response;
