@@ -41,10 +41,10 @@ class LoginPage extends StatelessWidget {
             if (json.containsKey("refresh_token")) {
               String refreshToken = json["refresh_token"];
               await storage.write(key: "refresh_token", value: refreshToken);
-              spotifyService.refreshToken = refreshToken;
+              spotifyService.setRefreshToken(refreshToken);
             }
             
-            spotifyService.token = token;
+            spotifyService.setToken(token);
             authProvider.setIsAuthenticated(true);
           }
         },

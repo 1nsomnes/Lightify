@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     if (context.mounted) {
       html = html.replaceAll(
         "{token}",
-        spotifyService.token,
+        spotifyService.getToken,
       );
       _controller.loadHtmlString(html);
     }

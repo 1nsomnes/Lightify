@@ -15,7 +15,7 @@ extension Player on SpotifyService {
     final response = await http.put(
       url,
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $_token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode(payload),
@@ -39,7 +39,7 @@ extension Player on SpotifyService {
     }
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     debugPrint("response: ${response.body}");
@@ -60,7 +60,7 @@ extension Player on SpotifyService {
     }
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     debugPrint("response: ${response.body}");
@@ -73,7 +73,7 @@ extension Player on SpotifyService {
 
     final response = await http.get(
       uri,
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     if (response.statusCode == 200 && notifyListeners) {
@@ -133,7 +133,7 @@ extension Player on SpotifyService {
     final response = await http.get(
       url,
 
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     return response;
@@ -149,7 +149,7 @@ extension Player on SpotifyService {
 
     final response = await http.post(
       url,
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     //debugPrint(response.body.toString());
@@ -173,7 +173,7 @@ extension Player on SpotifyService {
     final response = await http.get(
       url,
 
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {'Authorization': 'Bearer $_token'},
     );
 
     return response;
@@ -193,7 +193,7 @@ extension Player on SpotifyService {
     final response = await http.put(
       url,
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $_token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode(payload),

@@ -18,8 +18,6 @@ class SpotifyService {
   final AuthProvider _authProvider;
   late Function? updatePlayerToken;
 
-  String token = "";
-  String refreshToken = "";
 
   final _playbackStateCtrl = StreamController<PlaybackState>.broadcast();
   Stream<PlaybackState> get onPlaybackStateChanged => _playbackStateCtrl.stream;
@@ -36,6 +34,20 @@ class SpotifyService {
       spotifyService: this
 
     );
+  }
+
+  String _token = "";
+  String _refreshToken = "";
+
+  String get getToken => _token;
+  String get getRefreshToken => _refreshToken;
+
+  void setToken(String token) {
+    _token = token;
+  }
+
+  void setRefreshToken(String refreshToken) {
+    _refreshToken = refreshToken;
   }
 
   void dispose() {

@@ -258,7 +258,7 @@ class _SearchState extends State<Search> {
         debugPrint(
           "Successfully refreshed token, attempting to reinject token",
         );
-        widget.updateToken(spotifyService.token);
+        widget.updateToken(spotifyService.getToken);
       }
     } else if (response.statusCode == 200) {
     } else {}

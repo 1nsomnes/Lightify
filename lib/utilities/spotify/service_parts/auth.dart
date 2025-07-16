@@ -33,13 +33,13 @@ extension Auth on SpotifyService {
     final String newToken = refreshResponse["access_token"];
     await _storage.write(key: "token", value: newToken);
     _authProvider.setIsAuthenticated(true);
-    token = newToken;
-    updatePlayerToken!(token);
+    _token = newToken;
+    updatePlayerToken!(_token);
 
     if (refreshResponse.containsKey("refresh_token")) {
       String newRefreshToken = refreshResponse["refresh_token"];
-      await _storage.write(key: "refreshToken", value: refreshToken);
-      refreshToken = newRefreshToken;
+      await _storage.write(key: "refreshToken", value: _refreshToken);
+      _refreshToken = newRefreshToken;
     }
 
     return true;
@@ -59,7 +59,7 @@ extension Auth on SpotifyService {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Basic $auth',
       },
-      body: {'refresh_token': refreshToken, 'grant_type': 'refresh_token'},
+      body: {'refresh_token': _refreshToken, 'grant_type': 'refresh_token'},
     );
 
     if (response.statusCode == 200) {

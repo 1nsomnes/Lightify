@@ -76,7 +76,7 @@ class LoadHotKeys {
     await hotKeyManager.register(
       breakTokenKey,
       keyDownHandler: (_) async {
-        spotifyService.token = "break_token";
+        spotifyService.setToken("break_token");
         await FlutterSecureStorage().write(key: "token", value: "break_token");
         debugPrint("attempted to break token");
       },

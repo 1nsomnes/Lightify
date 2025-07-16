@@ -56,8 +56,8 @@ class _InitializationPageState extends State<InitializationPage> {
     
     // make sure our SpotifyService (uses auth provider) has access to the tokens
     // before any of the SpotifyService calls are made
-    if(token != null) spotifyService.token = token;
-    if(refreshToken != null) spotifyService.refreshToken = refreshToken;
+    if(token != null) spotifyService.setToken(token);
+    if(refreshToken != null) spotifyService.setRefreshToken(refreshToken);
 
     if (token != null) {
       final result = await spotifyService.isValidToken(token);
