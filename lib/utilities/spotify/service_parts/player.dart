@@ -139,17 +139,14 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http_lib.Response> queue(String uri, {String deviceId = ""}) async {
-    Uri url = Uri.parse("https://api.spotify.com/v1/me/player/queue");
-    if (deviceId.isNotEmpty) {
-      url = url.replace(queryParameters: {"uri": uri, "device_id": deviceId});
-    } else {
-      url = url.replace(queryParameters: {"uri": uri});
-    }
+  Future<Response> queue(String uri, {String deviceId = ""}) async {
 
-    final response = await http.post(
-      url,
-      headers: {'Authorization': 'Bearer $_token'},
+    final response = await dio.post(
+      "me/player/queue",
+      queryParameters: {
+        "uri": uri,
+        if(deviceId.isNotEmpty) "device_id": deviceId
+      }
     );
 
     //debugPrint(response.body.toString());
@@ -158,7 +155,6 @@ extension Player on SpotifyService {
   }
 
   Future<Response> searchSpotify(String query, int limit, int offset) async {
-
     final response = await dio.get(
       "search",
       queryParameters: {
@@ -172,27 +168,19 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http_lib.Response> playTracks(
-    List<String> uris, {
-    String deviceId = "",
-  }) async {
-    Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
-    if (deviceId.isNotEmpty) {
-      url = url.replace(queryParameters: {"device_id": deviceId});
-    }
+  Future<Response> playTracks(List<String> uris, {String deviceId = ""}) async {
 
     final Map<String, dynamic> payload = {"uris": uris};
 
-    final response = await http.put(
-      url,
-      headers: {
-        'Authorization': 'Bearer $_token',
-        'Content-Type': 'application/json',
+    final response = await dio.put(
+      "me/player/play",
+      options: Options(headers: {'Content-Type': 'application/json'}),
+      queryParameters: {
+        if(deviceId.isNotEmpty) "device_id" : deviceId
       },
-      body: jsonEncode(payload),
+      data: jsonEncode(payload),
     );
 
-    //debugPrint(response.body.toString());
 
     return response;
   }
