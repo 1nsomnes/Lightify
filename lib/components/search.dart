@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -81,14 +82,13 @@ class _SearchState extends State<Search> {
       () {
         return spotifyService.getLikedPlaylists(50, 0);
       },
-      process: (body) {
+      process: (data) {
         debugPrint("liked playlist");
 
-        final json = jsonDecode(body);
         //debugPrint("items: " + json["total"].toString());
         //debugPrint(json.toString());
         //debugPrint("token: ${widget.token}");
-        for (dynamic playlist in json["items"]) {
+        for (dynamic playlist in data["items"]) {
           //debugPrint("\n");
           //debugPrint(playlist.toString());
           //if (playlist == null) continue;
@@ -247,10 +247,10 @@ class _SearchState extends State<Search> {
   // We expect universal handling of some response status codes such as 401.
   // This method attempts to consolidate them
   Future<T> makeNetworkCall<T>(
-    Future<http.Response> Function() call, {
-    T Function(String)? process,
+    Future<Response> Function() call, {
+    T Function(dynamic)? process,
   }) async {
-    http.Response response = await call();
+    Response response = await call();
 
     // authentication error, try to refresh token and call the method again if anything
     if (response.statusCode == 401) {
@@ -264,7 +264,7 @@ class _SearchState extends State<Search> {
     } else {}
 
     if (process != null) {
-      return process(response.body);
+      return process(response.data);
     }
     return null as T;
   }

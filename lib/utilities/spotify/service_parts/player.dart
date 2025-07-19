@@ -1,24 +1,23 @@
 part of '../spotify_service.dart';
 
 extension Player on SpotifyService {
-  Future<http_lib.Response> playPlaylistOrAlbums(
+
+  Future<Response> playPlaylistOrAlbums(
     String uri, {
     String deviceId = "",
   }) async {
-    Uri url = Uri.parse("https://api.spotify.com/v1/me/player/play");
-    if (deviceId.isNotEmpty) {
-      url = url.replace(queryParameters: {"device_id": deviceId});
-    }
 
     final Map<String, dynamic> payload = {"context_uri": uri};
 
-    final response = await http.put(
-      url,
-      headers: {
-        'Authorization': 'Bearer $_token',
-        'Content-Type': 'application/json',
+    final response = await dio.put(
+      "me/player/play",
+      options: Options(headers: {
+        "Content-Type" : "application/json"
+      }),
+      queryParameters: {
+        if (deviceId.isNotEmpty) "device_id" : deviceId
       },
-      body: jsonEncode(payload),
+      data: jsonEncode(payload),
     );
 
     //debugPrint(response.body.toString());
@@ -26,58 +25,50 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<http_lib.Response> setShuffleMode(
+  Future<Response> setShuffleMode(
     ShuffleState shuffleState, {
     String deviceId = "",
   }) async {
-    Uri url = Uri.parse("https://api.spotify.com/v1/me/player/shuffle");
-    url = url.replace(queryParameters: {"state": shuffleState.value});
-    if (deviceId.isNotEmpty) {
-      url = url.replace(
-        queryParameters: {"state": shuffleState.value, "device_id": deviceId},
-      );
-    }
-    final response = await http.put(
-      url,
-      headers: {'Authorization': 'Bearer $_token'},
+
+    final response = await dio.put(
+      "me/player/shuffle",
+      queryParameters: {
+        "state" : shuffleState.value,
+        if (deviceId.isNotEmpty) "device_id": deviceId
+      }
     );
 
-    debugPrint("response: ${response.body}");
+    //debugPrint("response: ${response.body}");
 
     return response;
   }
 
-  Future<http_lib.Response> setRepeatMode(
+  Future<Response> setRepeatMode(
     RepeatState repeatState, {
     String deviceId = "",
   }) async {
-    Uri url = Uri.parse("https://api.spotify.com/v1/me/player/repeat");
-    url = url.replace(queryParameters: {"state": repeatState.value});
-    if (deviceId.isNotEmpty) {
-      url = url.replace(
-        queryParameters: {"state": repeatState.value, "device_id": deviceId},
-      );
-    }
-    final response = await http.put(
-      url,
-      headers: {'Authorization': 'Bearer $_token'},
+
+    final response = await dio.put(
+      "me/player/repeat",
+      queryParameters: {
+        "state": repeatState.value,
+        if (deviceId.isNotEmpty) "device_id" : deviceId
+      }
     );
 
-    debugPrint("response: ${response.body}");
+    //debugPrint("response: ${response.body}");
 
     return response;
   }
 
-  Future<http_lib.Response> getPlaybackState({notifyListeners = true}) async {
-    final uri = Uri.parse('https://api.spotify.com/v1/me/player');
+  Future<Response> getPlaybackState({notifyListeners = true}) async {
 
-    final response = await http.get(
-      uri,
-      headers: {'Authorization': 'Bearer $_token'},
+    final response = await dio.get(
+      "me/player"
     );
 
     if (response.statusCode == 200 && notifyListeners) {
-      var json = jsonDecode(response.body);
+      var json = response.data;
 
       RepeatState repeatState = switch (json["repeat_state"]) {
         "off" => RepeatState.repeatOff,
@@ -125,15 +116,14 @@ extension Player on SpotifyService {
     _playbackStateCtrl.add(playbackState);
   }
 
-  Future<http_lib.Response> getLikedPlaylists(int limit, int offset) async {
-    final url = Uri.parse("https://api.spotify.com/v1/me/playlists").replace(
-      queryParameters: {"limit": limit.toString(), "offset": offset.toString()},
-    );
+  Future<Response> getLikedPlaylists(int limit, int offset) async {
 
-    final response = await http.get(
-      url,
-
-      headers: {'Authorization': 'Bearer $_token'},
+    final response = await dio.get(
+      "me/playlists",
+      queryParameters: {
+        "limit" : limit.toString(),
+        "offset" : offset.toString()
+      },
     );
 
     return response;
