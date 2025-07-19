@@ -1,4 +1,11 @@
 <h1 align="center">Lightify</h1>
+<p align="center">
+  
+  <a href="https://creativecommons.org/licenses/by-nc/4.0/">
+	    <img src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" />
+	</a> 
+
+</p> 
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/05d1a215-9486-4c38-8dd8-81f4b5f19e4e"
@@ -36,7 +43,9 @@ right now.
 | Space | Play/Pause |
 | H | Previous Song |
 | L | Next Song |
-| S | Navigate to search bar (when already not open) |
+| S | Change shuffle mode |
+| R | Change repeat mode | 
+| TAB | Navigate to search bar (when already not open) |
 | T | Switch to track search mode |
 | A | Switch to album search mode |
 | P | Switch to playlist search mode |
@@ -58,7 +67,14 @@ right now.
 - [ ] Add a like button for songs
 - [ ] Auto size window when searchingsimilar to spotlight 
 - [ ] Theme loader
+- [ ] Make sure repeat mode works properly
+- [ ] Add transfer playback button
 - [ ] Create an installer 
 
 # Contributing
 Contributions are welcome, document issues in the issues tab and submit PRs when you've fixed an issue. 
+
+## License
+This software is distributed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). You are granted permission to copy, modify, and personalize this code for your own non-commercial projects and experiments. However, any use of this work for commercial purposes—including selling, licensing, or incorporating it into products or services offered for profit—is expressly prohibited without obtaining a separate license.
+
+© 2025 Cedric Claessens
