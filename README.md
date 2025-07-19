@@ -17,7 +17,15 @@
   Spotlight style Spotify client with a clean glass theme and vim-like keybinds for MacOS.
 </h3>
 
-# Installing
+## Table of Contents
+1. [Installation](#installation)
+2. [How does it work?](#how-does-it-work)
+3. [Keybinds](#keybinds)
+4. [Alpha Release TODOs](#alpha-release-todos)
+5. [Contributing](#contributing)
+6. [License](LICENSE)
+
+## Installation
 Currently in early stage development, if and when an alpha version is realeased an installer and website will be created.
 For the time being, you must install [Flutter](https://flutter.dev/) and run 
 
@@ -30,12 +38,12 @@ Additionally before building the application you will need to add your own clien
 no longer allows developers to easily create and share apps anymore. This is a painful process but coming soon I will add an easier place to
 inut client secrents. Please visit the [Spotify Developer Portal](https://developer.spotify.com/dashboard) to learn more about how to create an app.
 
-# How it works?
+## How does it work?
 Once you have installed it, it's a simple matter of logging in. This is **NOT** a remote, you do not need to have an instance of Spotify
 running to make this work. You will be able to easily search for, queue, and play music. Please note the Keybinds below for usage, particularly because none of the buttons work
 right now. 
 
-# Keybinds
+## Keybinds
 | KeyBind | Action |
 | - | - |
 | Meta + Shift + S | Open/Close lightify (works anywhere on your Mac) |
@@ -57,7 +65,7 @@ right now.
 | Ctrl + R | Restart |
 | Ctrl + D | Restart and delete cached data |
 
-# Alpha Release TODOs 
+## Alpha Release TODOs 
 - [ ] Add a section to input client secrets and ids easily
 - [ ] Settings page
 - [ ] Auto load next options when bottom of list is reached
@@ -69,9 +77,10 @@ right now.
 - [ ] Theme loader
 - [ ] Make sure repeat mode works properly
 - [ ] Add transfer playback button
+- [ ] Consistency on tab click
 - [ ] Create an installer 
 
-# Contributing
+## Contributing
 Contributions are welcome, document issues in the issues tab and submit PRs when you've fixed an issue. 
 
 ## License
