@@ -111,11 +111,8 @@
 
     function reconnect() {
       console.log("Reconnect");
-      window.spotifyPlayer.disconnect();
-
-      registerListeners(window.spotifyPlayer);
-
       window.spotifyPlayer.connect();
+      registerListeners(window.spotifyPlayer);
     }
 
     function setToken(token) {
