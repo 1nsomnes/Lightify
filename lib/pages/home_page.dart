@@ -79,6 +79,7 @@ class _HomePageState extends State<HomePage> {
                 deviceId = json["body"]["device_id"];
               });
             case "authenticationFailed":
+              spotifyService.attemptRefresh();
             default:
               debugPrint("unhandled function: ${json['func']}");
           }
