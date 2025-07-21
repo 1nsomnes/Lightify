@@ -33,7 +33,6 @@ class _InitializationPageState extends State<InitializationPage> {
   void _runFuture() {
     _future = initializeApp(context);
   }
-  
 
   // this restarts the intializaiton phase the hot keys need this funciton
   void restart() {
@@ -53,11 +52,11 @@ class _InitializationPageState extends State<InitializationPage> {
     final storage = FlutterSecureStorage();
     final token = await storage.read(key: "token");
     final refreshToken = await storage.read(key: "refresh_token");
-    
+
     // make sure our SpotifyService (uses auth provider) has access to the tokens
     // before any of the SpotifyService calls are made
-    if(token != null) spotifyService.setToken(token);
-    if(refreshToken != null) spotifyService.setRefreshToken(refreshToken);
+    if (token != null) spotifyService.setToken(token);
+    if (refreshToken != null) spotifyService.setRefreshToken(refreshToken);
 
     if (token != null) {
       final result = await spotifyService.isValidToken(token);
@@ -70,7 +69,6 @@ class _InitializationPageState extends State<InitializationPage> {
         return false; //some strange error has happened
       }
     } else if (refreshToken != null) {
-      
       spotifyService.attemptRefresh();
     } else {
       authProvider.setIsAuthenticated(false);
@@ -102,7 +100,23 @@ class _InitializationPageState extends State<InitializationPage> {
               }
             } else {
               return Center(
-                child: Text("Fatal error occured. Please restart the app."),
+                child: Column(
+                  children: [
+                    Text("Fatal error occured. Please restart the app."),
+                    ElevatedButton(
+                      onPressed: restart,
+                      style: const ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll<Color>(
+                          Color(0xFFFF2400),
+                        ),
+                      ),
+                      child: Text(
+                        "Refresh",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }
           },
