@@ -34,7 +34,7 @@ extension Auth on SpotifyService {
     await _storage.write(key: "token", value: newToken);
     _authProvider.setIsAuthenticated(true);
     setToken(newToken);
-    updatePlayerToken!(_token);
+    if(updatePlayerToken!= null) updatePlayerToken!(_token);
 
     if (refreshResponse.containsKey("refresh_token")) {
       String newRefreshToken = refreshResponse["refresh_token"];
