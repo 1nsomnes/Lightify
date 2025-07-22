@@ -25,10 +25,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadHtmlFromAssets(BuildContext context) async {
     String html = await rootBundle.loadString('assets/player.html');
     if (context.mounted) {
-      html = html.replaceAll(
-        "{token}",
-        spotifyService.getToken,
-      );
+      html = html.replaceAll("{token}", spotifyService.getToken);
       _controller.loadHtmlString(html);
     }
   }
@@ -107,7 +104,12 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       playbackState.playing = !playbackState.playing;
     });
-    _controller.runJavaScript("togglePlayback();");
+
+    //WARNING: this causes some lag between the pause and play button, should be smaller than the remote lag
+    //TODO: temporary fix to token expiring? 
+    spotifyService.getPlaybackState(notifyListeners: false).then((_) {
+      _controller.runJavaScript("togglePlayback();");
+    });
   }
 
   void _updateToken(String token) async {
@@ -116,14 +118,18 @@ class _HomePageState extends State<HomePage> {
     await _controller.runJavaScript(setTokenString);
     await _controller.runJavaScript("reconnect();");
   }
-  
-  //TODO: one repeat mode is overriden by skip and prev, maybe fix that? 
+
+  //TODO: one repeat mode is overriden by skip and prev, maybe fix that?
   void _next() {
-    _controller.runJavaScript("next();");
+    spotifyService.getPlaybackState(notifyListeners: false).then((_) {
+      _controller.runJavaScript("next();");
+    });
   }
 
   void _prev() {
+    spotifyService.getPlaybackState(notifyListeners: false).then((_) {
     _controller.runJavaScript("previous();");
+    });
   }
 
   void _toggleShuffle() {
@@ -145,7 +151,6 @@ class _HomePageState extends State<HomePage> {
           ? RepeatState.repeatOne
           : RepeatState.repeatOff;
     });
-
 
     spotifyService.setRepeatMode(playbackState.repeatState);
   }
