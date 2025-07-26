@@ -100,13 +100,38 @@
 
     function next() {
       console.log("Skipping song")
-      window.spotifyPlayer.nextTrack();
+      window.spotifyPlayer.getCurrentState().then(state => {
+        if (!state) {
+          window.spotifyPlayer.nextTrack();
+          console.log("no state")
+          return;
+        }
+
+        if (state.repeat_mode == 2) {
+          window.spotifyPlayer.seek(0)
+        } else {
+          window.spotifyPlayer.nextTrack();
+        }
+
+      })
 
     }
 
     function previous() {
-      console.log("Going back a song")
-      window.spotifyPlayer.previousTrack();
+      window.spotifyPlayer.getCurrentState().then(state => {
+        if (!state) {
+          window.spotifyPlayer.previousTrack();
+          console.log("no state")
+          return;
+        }
+
+        if (state.position >= 2000 || state.repeat_mode == 2) {
+          window.spotifyPlayer.seek(0)
+        } else {
+          window.spotifyPlayer.previousTrack();
+        }
+
+      })
     }
 
     function reconnect() {
