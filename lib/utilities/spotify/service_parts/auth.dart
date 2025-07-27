@@ -67,18 +67,16 @@ extension Auth on SpotifyService {
   Future<Map<String, dynamic>?> requestTokenFromRefresh() async {
     final uri = Uri.parse('https://accounts.spotify.com/api/token');
 
-    await dotenv.load(fileName: ".env");
-    String? auth = dotenv.env["client"];
-
-    if (auth == null) return {"Error": "Could not find client secrets"};
-
     final response = await http.post(
       uri,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic $auth',
       },
-      body: {'refresh_token': _refreshToken, 'grant_type': 'refresh_token'},
+      body: {
+        'refresh_token': _refreshToken,
+        'grant_type': 'refresh_token',
+        'client_id': '3c3d7b0f935849bf82a7ce3153e1581b',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -90,31 +88,21 @@ extension Auth on SpotifyService {
     return null;
   }
 
-  
-
-  //Future<Map<String, dynamic>> requestToken(String code) {
-  //return null;
-  //}
-
-  //WARNING: DO NOT USE THIS IN PRODUCTION
-  Future<Map<String, dynamic>> debugRequestToken(String code) async {
+  Future<Map<String, dynamic>> pkceRequestToken(
+    String code,
+    String codeVerifier,
+  ) async {
     final uri = Uri.parse('https://accounts.spotify.com/api/token');
-
-    await dotenv.load(fileName: ".env");
-    String? auth = dotenv.env["client"];
-
-    if (auth == null) return {"Error": "Could not find client secrets"};
 
     final response = await http.post(
       uri,
-      headers: {
-        'Authorization': 'Basic $auth',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: {
         'code': code,
         'redirect_uri': 'http://127.0.0.1:3434',
         'grant_type': 'authorization_code',
+        'client_id': '3c3d7b0f935849bf82a7ce3153e1581b',
+        'code_verifier': codeVerifier,
       },
     );
 

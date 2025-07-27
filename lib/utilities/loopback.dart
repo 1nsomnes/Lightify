@@ -33,6 +33,5 @@ Future<Uri> loopbackAuthorize({
   
   await server.close(force: true);
   
-  // 6) Return the full URI (e.g. http://127.0.0.1:3434/?code=…&state=…)
   return request.uri;
 }

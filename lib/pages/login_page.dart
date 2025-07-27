@@ -24,7 +24,8 @@ class LoginPage extends StatelessWidget {
           SpotifyService spotifyService = GetIt.instance.get<SpotifyService>();
 
           String codeVerifier = Auth.generateRandomString(64);
-          String codeVerifierBase64 = base64Encode(Auth.sha256(codeVerifier));
+          String codeChallenge = base64UrlEncode(Auth.sha256(codeVerifier));
+          codeChallenge = codeChallenge.replaceAll("=", "");
 
           Uri url = Uri.parse('https://accounts.spotify.com/authorize').replace(
             queryParameters: {
@@ -32,7 +33,7 @@ class LoginPage extends StatelessWidget {
               'client_id': '3c3d7b0f935849bf82a7ce3153e1581b',
               'scope': _scope,
               'code_challenge_method': 'S256',
-              'code_challenge': codeVerifierBase64,
+              'code_challenge': codeChallenge,
               'redirect_uri': 'http://127.0.0.1:3434',
             },
           );
@@ -42,8 +43,9 @@ class LoginPage extends StatelessWidget {
 
           String code = result.toString().split("code=").last;
 
-          Map<String, dynamic> json = await spotifyService.debugRequestToken(
+          Map<String, dynamic> json = await spotifyService.pkceRequestToken(
             code,
+            codeVerifier,
           );
           String token = json["access_token"];
 
