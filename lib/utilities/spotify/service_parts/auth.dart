@@ -9,6 +9,25 @@ enum AuthError { valid, invalid, unknown }
 // This link explains what these response codes mean, anything outside of the ones delineated below
 // are unexpected behavior and should return unkown status codes
 extension Auth on SpotifyService {
+  static const String _alphabet =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  static final Random _random = Random.secure();
+
+  static String generateRandomString(int length) {
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => _alphabet.codeUnitAt(_random.nextInt(_alphabet.length)),
+      ),
+    );
+  }
+
+  static Uint8List sha256(String data) {
+    final bytes = utf8.encode(data);
+    final digest = crypto.sha256.convert(bytes);
+    return Uint8List.fromList(digest.bytes);
+  }
+
   Future<AuthError> isValidToken(String token) async {
     final response = await getPlaybackState();
 
@@ -34,7 +53,7 @@ extension Auth on SpotifyService {
     await _storage.write(key: "token", value: newToken);
     _authProvider.setIsAuthenticated(true);
     setToken(newToken);
-    if(updatePlayerToken!= null) updatePlayerToken!(_token);
+    if (updatePlayerToken != null) updatePlayerToken!(_token);
 
     if (refreshResponse.containsKey("refresh_token")) {
       String newRefreshToken = refreshResponse["refresh_token"];
@@ -70,33 +89,40 @@ extension Auth on SpotifyService {
 
     return null;
   }
-//WARNING: DO NOT USE THIS IN PRODUCTION
-Future<Map<String, dynamic>> debugRequestToken(String code) async {
-  final uri = Uri.parse('https://accounts.spotify.com/api/token');
 
-  await dotenv.load(fileName: ".env");
-  String? auth = dotenv.env["client"];
+  
 
-  if (auth == null) return {"Error": "Could not find client secrets"};
+  //Future<Map<String, dynamic>> requestToken(String code) {
+  //return null;
+  //}
 
-  final response = await http.post(
-    uri,
-    headers: {
-      'Authorization': 'Basic $auth',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: {
-      'code': code,
-      'redirect_uri': 'http://127.0.0.1:3434',
-      'grant_type': 'authorization_code',
-    },
-  );
+  //WARNING: DO NOT USE THIS IN PRODUCTION
+  Future<Map<String, dynamic>> debugRequestToken(String code) async {
+    final uri = Uri.parse('https://accounts.spotify.com/api/token');
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> json = jsonDecode(response.body);
-    return json;
+    await dotenv.load(fileName: ".env");
+    String? auth = dotenv.env["client"];
+
+    if (auth == null) return {"Error": "Could not find client secrets"};
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Basic $auth',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'code': code,
+        'redirect_uri': 'http://127.0.0.1:3434',
+        'grant_type': 'authorization_code',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return json;
+    }
+
+    return {"Error": "Bad response"};
   }
-
-  return {"Error": "Bad response"};
-}
 }
