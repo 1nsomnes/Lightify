@@ -75,7 +75,7 @@ extension Auth on SpotifyService {
       body: {
         'refresh_token': _refreshToken,
         'grant_type': 'refresh_token',
-        'client_id': '3c3d7b0f935849bf82a7ce3153e1581b',
+        'client_id': _clientId,
       },
     );
 
@@ -101,7 +101,7 @@ extension Auth on SpotifyService {
         'code': code,
         'redirect_uri': 'http://127.0.0.1:3434',
         'grant_type': 'authorization_code',
-        'client_id': '3c3d7b0f935849bf82a7ce3153e1581b',
+        'client_id': _clientId,
         'code_verifier': codeVerifier,
       },
     );

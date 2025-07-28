@@ -81,6 +81,23 @@ class LoadHotKeys {
         debugPrint("attempted to break token");
       },
     );
+
+    HotKey breakRefreshTokenKey = HotKey(
+      key: PhysicalKeyboardKey.keyT,
+      modifiers: [HotKeyModifier.shift, HotKeyModifier.control],
+      scope: HotKeyScope.inapp,
+    );
+
+    await hotKeyManager.register(
+      breakRefreshTokenKey,
+      keyDownHandler: (_) async {
+        spotifyService.setToken("break_token");
+        spotifyService.setRefreshToken("break_token");
+        await FlutterSecureStorage().write(key: "token", value: "break_token");
+        await FlutterSecureStorage().write(key: "refresh_token", value: "break_token");
+        debugPrint("attempted to break both tokens");
+      },
+    );
   }
 
   static void loadPlayerhotKeys(

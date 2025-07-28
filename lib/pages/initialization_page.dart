@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/home_page.dart';
@@ -50,8 +52,17 @@ class _InitializationPageState extends State<InitializationPage> {
     }
 
     final storage = FlutterSecureStorage();
+    final clientId = await storage.read(key: "client_id");
     final token = await storage.read(key: "token");
     final refreshToken = await storage.read(key: "refresh_token");
+
+    if(clientId == null) {
+      spotifyService.setClientId("");
+      authProvider.setIsAuthenticated(false);
+      return true;
+    } else {
+      spotifyService.setClientId(clientId);
+    }
 
     // make sure our SpotifyService (uses auth provider) has access to the tokens
     // before any of the SpotifyService calls are made
@@ -101,8 +112,10 @@ class _InitializationPageState extends State<InitializationPage> {
             } else {
               return Center(
                 child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("Fatal error occured. Please restart the app."),
+                    SizedBox(height: 20,),
                     ElevatedButton(
                       onPressed: restart,
                       style: const ButtonStyle(
