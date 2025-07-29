@@ -30,7 +30,6 @@ extension Auth on SpotifyService {
 
   Future<AuthError> isValidToken(String token) async {
     final response = await getPlaybackState();
-
     if (response.statusCode == 200 || response.statusCode == 204) {
       return AuthError.valid;
     } else if (response.statusCode == 401) {

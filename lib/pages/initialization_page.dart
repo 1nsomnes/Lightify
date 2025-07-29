@@ -56,7 +56,7 @@ class _InitializationPageState extends State<InitializationPage> {
     final token = await storage.read(key: "token");
     final refreshToken = await storage.read(key: "refresh_token");
 
-    if(clientId == null) {
+    if (clientId == null) {
       spotifyService.setClientId("");
       authProvider.setIsAuthenticated(false);
       return true;
@@ -68,19 +68,25 @@ class _InitializationPageState extends State<InitializationPage> {
     // before any of the SpotifyService calls are made
     if (token != null) spotifyService.setToken(token);
     if (refreshToken != null) spotifyService.setRefreshToken(refreshToken);
-
     if (token != null) {
-      final result = await spotifyService.isValidToken(token);
+      try {
+        final result = await spotifyService.isValidToken(token);
 
-      if (result == AuthError.invalid) {
+        if (result == AuthError.invalid) {
+          authProvider.setIsAuthenticated(false);
+        } else if (result == AuthError.valid) {
+          authProvider.setIsAuthenticated(true);
+        } else {
+          return false; //some strange error has happened
+        }
+      } catch (e) {
         authProvider.setIsAuthenticated(false);
-      } else if (result == AuthError.valid) {
-        authProvider.setIsAuthenticated(true);
-      } else {
-        return false; //some strange error has happened
       }
+
     } else if (refreshToken != null) {
-      spotifyService.attemptRefresh();
+      if (!await spotifyService.attemptRefresh()) {
+        authProvider.setIsAuthenticated(false);
+      }
     } else {
       authProvider.setIsAuthenticated(false);
     }
@@ -112,10 +118,10 @@ class _InitializationPageState extends State<InitializationPage> {
             } else {
               return Center(
                 child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("Fatal error occured. Please restart the app."),
-                    SizedBox(height: 20,),
+                    SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: restart,
                       style: const ButtonStyle(

@@ -6,12 +6,10 @@ import 'package:crypto/crypto.dart' as crypto;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/spotify_http_client.dart';
-import "package:http/http.dart" as http_lib;
 
 part 'service_parts/player.dart';
 part 'service_parts/auth.dart';
@@ -39,7 +37,10 @@ class SpotifyService {
     );
 
     dio = Dio(
-      BaseOptions(baseUrl: "https://api.spotify.com/v1/", headers: {'Authorization': 'Bearer $_token'}),
+      BaseOptions(
+        baseUrl: "https://api.spotify.com/v1/",
+        headers: {'Authorization': 'Bearer $_token'},
+      ),
     );
 
     dio.interceptors.addAll([
@@ -47,19 +48,14 @@ class SpotifyService {
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
           var opts = error.requestOptions;
-          if (error.response?.statusCode == 401) {
-            if (opts.extra["__retry"] != true && await attemptRefresh()) {
-              try {
-                opts.headers["Authorization"] = "Bearer $_token";
-                opts.extra["__retry"] = true;
-                final cloneReq = await dio.fetch(opts);
-                return handler.resolve(cloneReq);
-              } finally {
-                return handler.next(error);
-              }
-            }
+          if (error.response?.statusCode == 401 &&
+              opts.extra["__retry"] != true &&
+              await attemptRefresh()) {
+            opts.headers["Authorization"] = "Bearer $_token";
+            opts.extra["__retry"] = true;
+            final cloneReq = await dio.fetch(opts);
+            return handler.resolve(cloneReq);
           }
-
           return handler.next(error);
         },
       ),
@@ -72,7 +68,7 @@ class SpotifyService {
 
   String get getToken => _token;
   String get getRefreshToken => _refreshToken;
-  String get getClientId => _clientId; 
+  String get getClientId => _clientId;
 
   void setToken(String token) {
     _token = token;
