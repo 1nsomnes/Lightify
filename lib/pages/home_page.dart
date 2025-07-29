@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   late final SpotifyService spotifyService;
+  late final StreamSubscription _playbackChangeSubscription;
   String deviceId = "";
 
   Future<void> loadHtmlFromAssets(BuildContext context) async {
@@ -31,12 +33,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _playbackChangeSubscription.cancel();
+    _controller.runJavaScript('window.stop();');
+    _controller.removeJavaScriptChannel("FlutterHost");
+    _controller.loadRequest(Uri.parse("about:blank"));
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
 
     spotifyService = GetIt.instance.get<SpotifyService>();
     spotifyService.updatePlayerToken = _updateToken;
-    spotifyService.onPlaybackStateChanged.listen((state) {
+    _playbackChangeSubscription = spotifyService.onPlaybackStateChanged.listen((state) {
       setState(() {
         playbackState = state;
       });

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/home_page.dart';
@@ -80,6 +78,8 @@ class _InitializationPageState extends State<InitializationPage> {
           return false; //some strange error has happened
         }
       } catch (e) {
+        //TODO: Catch 401 exceptions, specifically in isValidToken or anywhere else that is relevant
+        // DIO throws erros when in error status code range
         authProvider.setIsAuthenticated(false);
       }
 
