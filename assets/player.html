@@ -6,6 +6,16 @@
 
   <script>
 
+    const installMediaHandlers = () => {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => togglePlayback());       // play/pause already working
+        navigator.mediaSession.setActionHandler('pause', () => togglePlayback());
+        navigator.mediaSession.setActionHandler('previoustrack', () => previous()); // ← your missing handler :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
+        navigator.mediaSession.setActionHandler('nexttrack', () => next());
+      }
+
+    }
+
     function registerListeners(player) {
       player.removeListener('ready')
       player.removeListener('not_ready')
@@ -24,6 +34,8 @@
 
         window.spotifyPlayer = player;
         FlutterHost.postMessage(JSON.stringify(return_object));
+
+        installMediaHandlers();
       });
 
       player.addListener('not_ready', ({device_id}) => {
@@ -51,6 +63,8 @@
         track_window: {current_track}
       }) => {
 
+        installMediaHandlers();
+
         //TODO: possibly remove this update
         current_track["position_ms"] = position;
         return_object = {
@@ -73,7 +87,9 @@
 
           FlutterHost.postMessage(JSON.stringify(return_object));
         })
+
       });
+      
 
     }
 
