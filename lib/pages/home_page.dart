@@ -83,6 +83,7 @@ class _HomePageState extends State<HomePage> {
             case "updateDataFromPlayer":
               spotifyService.processStateFromPlayer(json["body"]);
             case "setDeviceId":
+              spotifyService.setDeviceId(json["body"]["device_id"]);
               setState(() {
                 deviceId = json["body"]["device_id"];
               });

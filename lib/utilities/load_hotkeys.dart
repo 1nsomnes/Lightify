@@ -99,6 +99,21 @@ class LoadHotKeys {
         debugPrint("attempted to break both tokens");
       },
     );
+
+    HotKey transferPlaybackKey = HotKey(
+      key: PhysicalKeyboardKey.keyT,
+      modifiers: [HotKeyModifier.meta],
+      scope: HotKeyScope.inapp,
+    );
+
+    await hotKeyManager.register(
+      transferPlaybackKey,
+      keyDownHandler: (_) async {
+        await spotifyService.transferPlayback();
+      },
+    );
+    
+
   }
 
   static void loadPlayerhotKeys(

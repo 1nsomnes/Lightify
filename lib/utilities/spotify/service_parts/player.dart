@@ -175,8 +175,8 @@ extension Player on SpotifyService {
     return response;
   }
 
-  Future<Response> transferPlayback(String deviceId) async {
-    final dynamic payload = {"device_ids": [ deviceId ]};
+  Future<Response> transferPlayback() async {
+    final dynamic payload = {"device_ids": [ _deviceId ]};
 
     final response = await dio.put(
       "/me/player",

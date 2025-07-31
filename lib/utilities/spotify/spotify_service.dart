@@ -65,10 +65,12 @@ class SpotifyService {
   String _token = "";
   String _refreshToken = "";
   String _clientId = "";
+  String _deviceId = "";
 
   String get getToken => _token;
   String get getRefreshToken => _refreshToken;
   String get getClientId => _clientId;
+  String get getDeviceId => _deviceId;
 
   void setToken(String token) {
     _token = token;
@@ -81,6 +83,10 @@ class SpotifyService {
 
   void setClientId(String clientId) {
     _clientId = clientId;
+  }
+
+  void setDeviceId(String deviceId) {
+    _deviceId = deviceId;
   }
 
   void dispose() {

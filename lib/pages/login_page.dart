@@ -1,8 +1,6 @@
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/providers/auth_provider.dart';
@@ -14,7 +12,7 @@ const _scope =
     'streaming playlist-read-private user-read-email user-read-private user-library-read user-library-modify user-read-playback-state user-modify-playback-state';
 
 class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+  const LoginPage({super.key});
 
 
   @override
