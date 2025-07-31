@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 
@@ -16,7 +13,7 @@ class ProcessResponse {
     for (dynamic track in tracks) {
       var item = SearchItem(
         name: track["name"],
-        artist: track["artists"][0]["name"],
+        artist: track["artists"].map((i) => i['name'] as String).join(', '),
         imgUrl: track["album"]["images"][2]["url"],
         ctxUri: track["uri"],
       );
@@ -26,7 +23,7 @@ class ProcessResponse {
     for (dynamic album in albums) {
       var item = SearchItem(
         name: album["name"],
-        artist: album["artists"][0]["name"],
+        artist: album["artists"].map((i) => i['name'] as String).join(', '),
         imgUrl: album["images"][2]["url"],
         ctxUri: album["uri"],
       );
