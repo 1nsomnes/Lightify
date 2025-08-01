@@ -129,6 +129,33 @@ extension Player on SpotifyService {
     return response;
   }
 
+  Future<Response> getLikedSongs(int limit, int offset) async {
+
+    final response = await dio.get(
+      "me/tracks",
+      queryParameters: {
+        "limit" : limit.toString(),
+        "offset" : offset.toString()
+      },
+    );
+
+    return response;
+  }
+
+
+  Future<Response> getLikedAlbums(int limit, int offset) async {
+
+    final response = await dio.get(
+      "me/albums",
+      queryParameters: {
+        "limit" : limit.toString(),
+        "offset" : offset.toString()
+      },
+    );
+
+    return response;
+  }
+
   Future<Response> queue(String uri, {String deviceId = ""}) async {
 
     final response = await dio.post(

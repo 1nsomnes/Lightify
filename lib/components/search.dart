@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -75,31 +76,32 @@ class _SearchState extends State<Search> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     authProvider = Provider.of<AuthProvider>(context);
+    loadPersonalCatalog();
 
-    makeNetworkCall(
-      () {
-        return spotifyService.getLikedPlaylists(50, 0);
-      },
-      process: (data) {
-        debugPrint("liked playlist");
+  }
 
-        //debugPrint("items: " + json["total"].toString());
-        //debugPrint(json.toString());
-        //debugPrint("token: ${widget.token}");
-        for (dynamic playlist in data["items"]) {
-          //debugPrint("\n");
-          //debugPrint(playlist.toString());
-          //if (playlist == null) continue;
-          var item = SearchItem(
-            name: playlist["name"] ?? "",
-            artist: playlist["owner"]["display_name"] ?? "",
-            imgUrl: playlist["images"][0]["url"] ?? "",
-            ctxUri: playlist["uri"] ?? "",
-          );
-          _myPlaylists.items.add(item);
-        }
-      },
-    );
+  void loadPersonalCatalog() async {
+    int offset = 0;
+    while (true) {
+      var response = await spotifyService.getLikedPlaylists(50, offset);
+      if (response.statusCode != 200) break;
+
+      var data = response.data;
+
+      for (dynamic playlist in data["items"]) {
+        var item = SearchItem(
+          name: playlist["name"] ?? "",
+          artist: playlist["owner"]["display_name"] ?? "",
+          imgUrl: playlist["images"][0]["url"] ?? "",
+          ctxUri: playlist["uri"] ?? "",
+        );
+        _myPlaylists.items.add(item);
+      }
+
+      if (data["next"] == null) break;
+      offset+= 50;
+
+    }
   }
 
   @override
@@ -240,31 +242,6 @@ class _SearchState extends State<Search> {
     action(_albums);
     action(_tracks);
     action(_playlists);
-  }
-
-  // We expect universal handling of some response status codes such as 401.
-  // This method attempts to consolidate them
-  Future<T> makeNetworkCall<T>(
-    Future<Response> Function() call, {
-    T Function(dynamic)? process,
-  }) async {
-    Response response = await call();
-
-    // authentication error, try to refresh token and call the method again if anything
-    if (response.statusCode == 401) {
-      if (await spotifyService.attemptRefresh()) {
-        debugPrint(
-          "Successfully refreshed token, attempting to reinject token",
-        );
-        widget.updateToken(spotifyService.getToken);
-      }
-    } else if (response.statusCode == 200) {
-    } else {}
-
-    if (process != null) {
-      return process(response.data);
-    }
-    return null as T;
   }
 
   void playSelected(String? ctxUri) {
