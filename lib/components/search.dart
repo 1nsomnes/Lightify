@@ -76,27 +76,22 @@ class _SearchState extends State<Search> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     authProvider = Provider.of<AuthProvider>(context);
-    loadPersonalCatalog();
+
+    loadPersonalCatalog(spotifyService.getLikedAlbums, ProcessResponse.processAlbumsJson, _myAlbums);
+    loadPersonalCatalog(spotifyService.getLikedSongs, ProcessResponse.processTracksJson, _myTracks);
+    loadPersonalCatalog(spotifyService.getLikedPlaylists, ProcessResponse.processPlaylistsJson, _myPlaylists);
 
   }
 
-  void loadPersonalCatalog() async {
+  void loadPersonalCatalog(Future<Response> Function(int, int) call, Function(List<dynamic>, List<dynamic>, {bool savedResult}) parser, SearchList list) async {
     int offset = 0;
     while (true) {
-      var response = await spotifyService.getLikedPlaylists(50, offset);
+      var response = await call(50, offset);
       if (response.statusCode != 200) break;
 
       var data = response.data;
-
-      for (dynamic playlist in data["items"]) {
-        var item = SearchItem(
-          name: playlist["name"] ?? "",
-          artist: playlist["owner"]["display_name"] ?? "",
-          imgUrl: playlist["images"][0]["url"] ?? "",
-          ctxUri: playlist["uri"] ?? "",
-        );
-        _myPlaylists.items.add(item);
-      }
+      
+      parser(data["items"], list.items, savedResult: true);
 
       if (data["next"] == null) break;
       offset+= 50;
@@ -247,7 +242,6 @@ class _SearchState extends State<Search> {
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
       if (ctxUri.split(":")[1] == "track") {
-        //TODO: make sure you update the device id
         spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
       } else {
         spotifyService.playPlaylistOrAlbums(ctxUri, deviceId: widget.deviceId);

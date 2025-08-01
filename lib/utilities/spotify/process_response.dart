@@ -9,28 +9,43 @@ class ProcessResponse {
     List<dynamic> playlists = json["playlists"]["items"];
 
     SearchResult result = SearchResult(); 
+    
+    processTracksJson(tracks, result.tracks);
+    processAlbumsJson(albums, result.albums);
+    processPlaylistsJson(playlists, result.playlists);
 
-    for (dynamic track in tracks) {
+
+    return result;
+  }
+  
+  static processTracksJson(List<dynamic> data, List<dynamic> list, { bool savedResult = false}) {
+    for (dynamic track in data) {
+      if(savedResult) track = track["track"];
       var item = SearchItem(
         name: track["name"],
         artist: track["artists"].map((i) => i['name'] as String).join(', '),
         imgUrl: track["album"]["images"][2]["url"],
         ctxUri: track["uri"],
       );
-      result.tracks.add(item);
+      list.add(item);
     }
+  }
 
-    for (dynamic album in albums) {
+  static processAlbumsJson(List<dynamic> data, List<dynamic> list, { bool savedResult = false}) {
+    for (dynamic album in data) {
+      if(savedResult) album = album["album"];
       var item = SearchItem(
         name: album["name"],
         artist: album["artists"].map((i) => i['name'] as String).join(', '),
         imgUrl: album["images"][2]["url"],
         ctxUri: album["uri"],
       );
-      result.albums.add(item);
+      list.add(item);
     }
+  }
 
-    for (dynamic playlist in playlists) {
+  static processPlaylistsJson(List<dynamic> data, List<dynamic> list, { bool savedResult = false}) {
+    for (dynamic playlist in data) {
       //debugPrint(playlist.toString());
       if(playlist == null) continue;
       var item = SearchItem(
@@ -39,9 +54,8 @@ class ProcessResponse {
         imgUrl: playlist["images"][0]["url"] ?? "",
         ctxUri: playlist["uri"] ?? "",
       );
-      result.playlists.add(item);
+      list.add(item);
     }
-
-    return result;
   }
+
 }
