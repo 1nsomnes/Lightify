@@ -21,7 +21,7 @@
 1. [Installation](#installation)
 2. [How does it work?](#how-does-it-work)
 3. [Keybinds](#keybinds)
-4. [Alpha Release TODOs](#alpha-release-todos)
+4. [Versions, Change Logs, Future Implementations](#versions-change-logs-future-implementations)
 5. [Contributing](#contributing)
 6. [License](LICENSE)
 
@@ -65,23 +65,37 @@ right now.
 | Ctrl + R | Restart |
 | Ctrl + D | Restart and delete cached data |
 
-## Alpha Release TODOs 
-- [ ] Add a section to input client secrets and ids easily
+
+## Versions, Change Logs, Future Implementations
+✅ = this version is published <br>
+❌ = this version is not published
+
+<details><summary> <h3>Future features</h3> </summary>
+
 - [ ] Settings page
 - [ ] Auto load next options when bottom of list is reached
-- [ ] Add "my catalog" for tracks and albums
-- [ ] Enable search in "my catalog"
-- [ ] Make the buttons work (currently only keybinds work)
-- [ ] Add a like button for songs
-- [ ] Auto size window when searchingsimilar to spotlight 
+- [ ] Auto size window when searching similar to spotlight
 - [ ] Theme loader
-- [ ] Make sure repeat mode works properly
-- [ ] Add transfer playback button
 - [ ] Consistency on tab click
+
+</details>
+<details><summary> <h3>Features for v0.1 ❌</h3> </summary>
+
+- [x] ~Add a section to input client secrets and ids easily~
+- [x] ~Add "my catalog" for tracks and albums~
+- [x] ~Enable search in "my catalog"~
+- [ ] Make the GUI buttons work (currently only keybinds work)
+- [ ] Add a like button for songs
+- [x] ~Make sure repeat mode works properly~
+- [x] ~Add transfer playback shortcut~
 - [ ] Create an installer 
 
+</details>
+
+<h3> Start of log (08/01/2025) </h3>
+
 ## Contributing
-Contributions are welcome, document issues in the issues tab and submit PRs when you've fixed an issue. 
+Contributions are welcome and encouraged. Document issues in the issues tab and submit PRs when you've fixed an issue. More info coming soon. 
 
 ## License
 This software is distributed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). You are granted permission to copy, modify, and personalize this code for your own non-commercial projects and experiments. However, any use of this work for commercial purposes—including selling, licensing, or incorporating it into products or services offered for profit—is expressly prohibited without obtaining a separate license.
