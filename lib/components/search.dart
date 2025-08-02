@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -82,7 +79,6 @@ class _SearchState extends State<Search> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     authProvider = Provider.of<AuthProvider>(context);
-    debugPrint("caled");
     loadPersonalCatalog(
       spotifyService.getLikedAlbums,
       ProcessResponse.processAlbumsJson,
@@ -298,7 +294,13 @@ class _SearchState extends State<Search> {
         var [scopedList, fullList] = i;
         var items = fullList.items
             .where(
-              (item) => (item.name.toLowerCase().contains(query.toLowerCase())),
+              (item) {
+                String stringToMatch = "${item.name} ${item.artist}";
+                stringToMatch = stringToMatch.toLowerCase();
+
+                return stringToMatch.contains(query.toLowerCase());
+
+              },
             )
             .toList();
         scopedList.items = items;
