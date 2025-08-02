@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -68,6 +69,11 @@ class _SearchState extends State<Search> {
   final SearchList _myPlaylists = SearchList();
   final SearchList _myAlbums = SearchList();
 
+  // full list
+  final SearchList _myFullTracks = SearchList();
+  final SearchList _myFullPlaylists = SearchList();
+  final SearchList _myFullAlbums = SearchList();
+
   late AuthProvider authProvider;
   late FlutterSecureStorage storage;
   late SpotifyService spotifyService;
@@ -76,26 +82,41 @@ class _SearchState extends State<Search> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     authProvider = Provider.of<AuthProvider>(context);
-
-    loadPersonalCatalog(spotifyService.getLikedAlbums, ProcessResponse.processAlbumsJson, _myAlbums);
-    loadPersonalCatalog(spotifyService.getLikedSongs, ProcessResponse.processTracksJson, _myTracks);
-    loadPersonalCatalog(spotifyService.getLikedPlaylists, ProcessResponse.processPlaylistsJson, _myPlaylists);
-
+    debugPrint("caled");
+    loadPersonalCatalog(
+      spotifyService.getLikedAlbums,
+      ProcessResponse.processAlbumsJson,
+      _myFullAlbums,
+    );
+    loadPersonalCatalog(
+      spotifyService.getLikedSongs,
+      ProcessResponse.processTracksJson,
+      _myFullTracks,
+    );
+    loadPersonalCatalog(
+      spotifyService.getLikedPlaylists,
+      ProcessResponse.processPlaylistsJson,
+      _myFullPlaylists,
+    );
   }
 
-  void loadPersonalCatalog(Future<Response> Function(int, int) call, Function(List<dynamic>, List<dynamic>, {bool savedResult}) parser, SearchList list) async {
+  void loadPersonalCatalog(
+    Future<Response> Function(int, int) call,
+    Function(List<dynamic>, List<dynamic>, {bool savedResult}) parser,
+    SearchList list,
+  ) async {
     int offset = 0;
     while (true) {
       var response = await call(50, offset);
       if (response.statusCode != 200) break;
 
       var data = response.data;
-      
-      parser(data["items"], list.items, savedResult: true);
+      setState(() {
+        parser(data["items"], list.items, savedResult: true);
+      });
 
       if (data["next"] == null) break;
-      offset+= 50;
-
+      offset += 50;
     }
   }
 
@@ -215,12 +236,22 @@ class _SearchState extends State<Search> {
 
   SearchList getRelevantList() {
     if (mine) {
-      if (searchKind == SearchKind.album) {
-        return _myAlbums;
-      } else if (searchKind == SearchKind.track) {
-        return _myTracks;
+      if (_textController.text.trim().isNotEmpty) {
+        if (searchKind == SearchKind.album) {
+          return _myAlbums;
+        } else if (searchKind == SearchKind.track) {
+          return _myTracks;
+        } else {
+          return _myPlaylists;
+        }
       } else {
-        return _myPlaylists;
+        if (searchKind == SearchKind.album) {
+          return _myFullAlbums;
+        } else if (searchKind == SearchKind.track) {
+          return _myFullTracks;
+        } else {
+          return _myFullPlaylists;
+        }
       }
     } else {
       if (searchKind == SearchKind.album) {
@@ -257,6 +288,22 @@ class _SearchState extends State<Search> {
         list.items.clear();
         list.selected = 0;
       });
+      var searchToFullMap = [
+        [_myTracks, _myFullTracks],
+        [_myAlbums, _myFullAlbums],
+        [_myPlaylists, _myFullPlaylists],
+      ];
+
+      for (List<SearchList> i in searchToFullMap) {
+        var [scopedList, fullList] = i;
+        var items = fullList.items
+            .where(
+              (item) => (item.name.toLowerCase().contains(query.toLowerCase())),
+            )
+            .toList();
+        scopedList.items = items;
+        scopedList.selected = 0;
+      }
     });
 
     var response = await spotifyService.searchSpotify(query, 30, 0);
