@@ -34,9 +34,7 @@ For the time being, you must install [Flutter](https://flutter.dev/) and run
 After this you will be able to find Lightify through Spotlight or inside the releases 
 folder for MacOS in the project directory. 
 
-Additionally before building the application you will need to add your own client secret, in a `.env` file, this is because Spotify
-no longer allows developers to easily create and share apps anymore. This is a painful process but coming soon I will add an easier place to
-inut client secrents. Please visit the [Spotify Developer Portal](https://developer.spotify.com/dashboard) to learn more about how to create an app.
+Additionally you will need to [create a Spoty client](https://developer.spotify.com/) and input the client ID when you run the application. 
 
 ## How does it work?
 Once you have installed it, it's a simple matter of logging in. This is **NOT** a remote, you do not need to have an instance of Spotify
