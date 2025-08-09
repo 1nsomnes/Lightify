@@ -93,7 +93,13 @@ right now.
 <h3> Start of log (08/01/2025) </h3>
 
 ## Contributing
-Contributions are welcome and encouraged. Document issues in the issues tab and submit PRs when you've fixed an issue. More info coming soon. 
+Contributions are welcome and encouraged. 
+
+Please visit the issues tab to see what needs to be done. Check to see if anyone has been working on it so you don't do redundant work.
+
+Send in a PR when you've fixed an issue and I might or might not merge it.
+
+This is a small project so if anyone sends in a review I will probably code review everything. 
 
 ## License
 This software is distributed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). You are granted permission to copy, modify, and personalize this code for your own non-commercial projects and experiments. However, any use of this work for commercial purposes—including selling, licensing, or incorporating it into products or services offered for profit—is expressly prohibited without obtaining a separate license.
