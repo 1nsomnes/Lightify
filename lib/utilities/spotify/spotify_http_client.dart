@@ -16,21 +16,19 @@ class SpotifyHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    final clone = _copyRequest(request);
-    var streamed = await _inner.send(clone);
+    // The original is still readable after being sent, so only copy it when
+    // a retry is actually needed.
+    final streamed = await _inner.send(request);
+    if (streamed.statusCode != 401) return streamed;
 
-    // 2️⃣ If the status is 401, notify once
-    if (streamed.statusCode == 401) {
-      onUnauthorized();
-      if (await spotifyService.attemptRefresh()) {
-        final retryClone = _copyRequest(request);
-        streamed = await _inner.send(retryClone);
-      }
-    }
+    onUnauthorized();
+    if (!await spotifyService.attemptRefresh()) return streamed;
 
-    return streamed;
+    final retry = _copyRequest(request);
+    await streamed.stream.drain<void>();
+    return _inner.send(retry);
   }
-  
+
   // Pulled from stack overflow <3
   // https://stackoverflow.com/questions/51096991/dart-http-bad-state-cant-finalize-a-finalized-request-when-retrying-a-http
 

@@ -2,16 +2,13 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/components/window_selection.dart';
-import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Search extends StatefulWidget {
@@ -71,30 +68,7 @@ class _SearchState extends State<Search> {
   final SearchList _myFullPlaylists = SearchList();
   final SearchList _myFullAlbums = SearchList();
 
-  late AuthProvider authProvider;
-  late FlutterSecureStorage storage;
-  late SpotifyService spotifyService;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    authProvider = Provider.of<AuthProvider>(context);
-    loadPersonalCatalog(
-      spotifyService.getLikedAlbums,
-      ProcessResponse.processAlbumsJson,
-      _myFullAlbums,
-    );
-    loadPersonalCatalog(
-      spotifyService.getLikedSongs,
-      ProcessResponse.processTracksJson,
-      _myFullTracks,
-    );
-    loadPersonalCatalog(
-      spotifyService.getLikedPlaylists,
-      ProcessResponse.processPlaylistsJson,
-      _myFullPlaylists,
-    );
-  }
+  late final SpotifyService spotifyService;
 
   void loadPersonalCatalog(
     Future<Response> Function(int, int) call,
@@ -104,7 +78,7 @@ class _SearchState extends State<Search> {
     int offset = 0;
     while (true) {
       var response = await call(50, offset);
-      if (response.statusCode != 200) break;
+      if (!mounted || response.statusCode != 200) break;
 
       var data = response.data;
       setState(() {
@@ -124,9 +98,22 @@ class _SearchState extends State<Search> {
       _searchNode.requestFocus();
     });
 
-    final getIt = GetIt.instance;
-    storage = getIt.get<FlutterSecureStorage>();
-    spotifyService = getIt.get<SpotifyService>();
+    spotifyService = GetIt.instance.get<SpotifyService>();
+    loadPersonalCatalog(
+      spotifyService.getLikedAlbums,
+      ProcessResponse.processAlbumsJson,
+      _myFullAlbums,
+    );
+    loadPersonalCatalog(
+      spotifyService.getLikedSongs,
+      ProcessResponse.processTracksJson,
+      _myFullTracks,
+    );
+    loadPersonalCatalog(
+      spotifyService.getLikedPlaylists,
+      ProcessResponse.processPlaylistsJson,
+      _myFullPlaylists,
+    );
   }
 
   @override
@@ -134,7 +121,20 @@ class _SearchState extends State<Search> {
     _debounce?.cancel();
     _textController.removeListener(_onSearchChanged);
     _textController.dispose();
+    _keyNode.dispose();
+    _searchNode.dispose();
     super.dispose();
+  }
+
+  void _moveSelection(SearchList list, int delta) {
+    setState(() {
+      list.selected = (list.selected + delta).clamp(0, list.items.length - 1);
+    });
+    _scroll.scrollTo(
+      index: list.selected,
+      duration: const Duration(milliseconds: 200),
+      alignment: 0.38,
+    );
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
@@ -145,32 +145,11 @@ class _SearchState extends State<Search> {
     switch (lk) {
       case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
-        setState(() {
-          relevantList.selected = (relevantList.selected + 1).clamp(
-            0,
-            relevantList.items.length - 1,
-          );
-        });
-
-        _scroll.scrollTo(
-          index: relevantList.selected,
-          duration: Duration(milliseconds: 200),
-          alignment: 0.38,
-        );
+        _moveSelection(relevantList, 1);
 
       case LogicalKeyboardKey.arrowUp:
       case LogicalKeyboardKey.keyK:
-        setState(() {
-          relevantList.selected = (relevantList.selected - 1).clamp(
-            0,
-            relevantList.items.length - 1,
-          );
-        });
-        _scroll.scrollTo(
-          index: relevantList.selected,
-          duration: Duration(milliseconds: 200),
-          alignment: 0.38,
-        );
+        _moveSelection(relevantList, -1);
 
       case LogicalKeyboardKey.tab:
         setState(() => relevantList.selected = -1);
@@ -185,9 +164,7 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyQ:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          var ctxUri = relevantList.items[relevantList.selected].ctxUri;
-
-          spotifyService.queue(ctxUri);
+          spotifyService.queue(relevantList.items[relevantList.selected].ctxUri);
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -220,8 +197,7 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.enter:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          var ctxUri = relevantList.items[relevantList.selected].ctxUri;
-          playSelected(ctxUri);
+          playSelected(relevantList.items[relevantList.selected].ctxUri);
         }
 
       default:
@@ -279,36 +255,31 @@ class _SearchState extends State<Search> {
   }
 
   void _populateResults(String query) async {
+    final lowerQuery = query.toLowerCase();
     setState(() {
       updateAllLists((list) {
         list.items.clear();
         list.selected = 0;
       });
-      var searchToFullMap = [
-        [_myTracks, _myFullTracks],
-        [_myAlbums, _myFullAlbums],
-        [_myPlaylists, _myFullPlaylists],
-      ];
-
-      for (List<SearchList> i in searchToFullMap) {
-        var [scopedList, fullList] = i;
-        var items = fullList.items
+      for (final (scopedList, fullList) in [
+        (_myTracks, _myFullTracks),
+        (_myAlbums, _myFullAlbums),
+        (_myPlaylists, _myFullPlaylists),
+      ]) {
+        scopedList.items = fullList.items
             .where(
-              (item) {
-                String stringToMatch = "${item.name} ${item.artist}";
-                stringToMatch = stringToMatch.toLowerCase();
-
-                return stringToMatch.contains(query.toLowerCase());
-
-              },
+              (item) => "${item.name} ${item.artist}".toLowerCase().contains(
+                lowerQuery,
+              ),
             )
             .toList();
-        scopedList.items = items;
         scopedList.selected = 0;
       }
     });
 
     var response = await spotifyService.searchSpotify(query, 30, 0);
+    // drop stale responses: the query changed (or widget went away) meanwhile.
+    if (!mounted || query != _textController.text.trim()) return;
     if (response.statusCode == 200) {
       SearchResult result = ProcessResponse.parseSearchResults(response.data);
       setState(() {
@@ -319,7 +290,7 @@ class _SearchState extends State<Search> {
     }
   }
 
-  void _search() async {
+  void _search() {
     final query = _textController.text.trim();
     debugPrint("searching");
     if (query.isNotEmpty) {
@@ -330,7 +301,7 @@ class _SearchState extends State<Search> {
   }
 
   void _flushDebounce() {
-    if (_debounce?.isActive ?? true) {
+    if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
       _search();
     }
@@ -340,13 +311,15 @@ class _SearchState extends State<Search> {
     String curr = _textController.text;
     if (curr != _lastQuery) {
       _lastQuery = curr;
-      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce?.cancel();
       _debounce = Timer(const Duration(milliseconds: 500), _search);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final relevantList = getRelevantList();
     return Column(
       children: [
         Padding(
@@ -374,44 +347,40 @@ class _SearchState extends State<Search> {
         Focus(
           focusNode: _keyNode,
           onKeyEvent: _onKey,
-          child: Builder(
-            builder: (BuildContext ctx) {
-              SearchList relevantList = getRelevantList();
-
-              if (relevantList.items.isEmpty) return const SizedBox.shrink();
-
-              return SizedBox(
-                height: 350,
-                child: ScrollablePositionedList.builder(
-                  physics: const ClampingScrollPhysics(),
-                  itemScrollController: _scroll,
-                  itemCount: relevantList.items.length,
-                  itemBuilder: (context, dynamic i) {
-                    SearchItem info = relevantList.items[i];
-                    return ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.network(
-                          info.imgUrl,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              Icon(Icons.broken_image),
+          child: relevantList.items.isEmpty
+              ? const SizedBox.shrink()
+              : SizedBox(
+                  height: 350,
+                  child: ScrollablePositionedList.builder(
+                    physics: const ClampingScrollPhysics(),
+                    itemScrollController: _scroll,
+                    itemCount: relevantList.items.length,
+                    itemBuilder: (context, i) {
+                      SearchItem info = relevantList.items[i];
+                      return ListTile(
+                        leading: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(4),
+                          ),
+                          child: Image.network(
+                            info.imgUrl,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image),
+                          ),
                         ),
-                      ),
-                      selected: i == relevantList.selected,
-                      selectedColor: Color(0xFF1DB954),
-                      titleTextStyle: Theme.of(context).textTheme.titleMedium,
-                      subtitleTextStyle: Theme.of(context).textTheme.labelSmall,
-                      title: Text(info.name),
-                      subtitle: Text(info.artist),
-                    );
-                  },
+                        selected: i == relevantList.selected,
+                        selectedColor: const Color(0xFF1DB954),
+                        titleTextStyle: textTheme.titleMedium,
+                        subtitleTextStyle: textTheme.labelSmall,
+                        title: Text(info.name),
+                        subtitle: Text(info.artist),
+                      );
+                    },
+                  ),
                 ),
-              );
-            },
-          ),
         ),
       ],
     );

@@ -12,7 +12,7 @@ Widget buildCircleButton({
       width: size,
       height: size,
     ),
-    shape: CircleBorder(),
+    shape: const CircleBorder(),
     fillColor: backgroundColor,
     elevation: 2,
     child: Icon(icon, color: Colors.white),

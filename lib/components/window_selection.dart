@@ -41,11 +41,10 @@ class WindowSelection extends StatelessWidget {
               Checkbox(
                 value: mine,
                 onChanged: (_) {},
-                activeColor:
-                    Colors.purple ?? Theme.of(context).colorScheme.primary,
+                activeColor: Colors.purple,
               ),
               const SizedBox(width: 8),
-              Text("Mine"),
+              const Text("Mine"),
             ],
           ),
         ),

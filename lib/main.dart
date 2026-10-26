@@ -20,25 +20,25 @@ class BlurWindowListener with WindowListener {
 }
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   // ensure these all started so any service that may need them will be able to
   final getIt = GetIt.instance;
-  AuthProvider authProvider = AuthProvider();
-  FlutterSecureStorage storage = FlutterSecureStorage();
-  getIt.registerLazySingleton(() => authProvider);
-  getIt.registerLazySingleton(() => storage);
+  final authProvider = AuthProvider();
+  const storage = FlutterSecureStorage();
+  getIt.registerSingleton<AuthProvider>(authProvider);
+  getIt.registerSingleton<FlutterSecureStorage>(storage);
 
   getIt.registerLazySingleton<SpotifyService>(
-    () => SpotifyService(authProvider: authProvider,storage: storage),
+    () => SpotifyService(authProvider: authProvider, storage: storage),
   );
 
-
-  await hotKeyManager.unregisterAll();
-  await windowManager.ensureInitialized();
-
-  await windowManager.setSkipTaskbar(true);
+  await Future.wait([
+    hotKeyManager.unregisterAll(),
+    windowManager
+        .ensureInitialized()
+        .then((_) => windowManager.setSkipTaskbar(true)),
+  ]);
 
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
@@ -46,11 +46,10 @@ void main() async {
 
   windowManager.addListener(BlurWindowListener());
 
-
   // RUN THE APPLICATION
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => authProvider,
+    ChangeNotifierProvider.value(
+      value: authProvider,
       child: const MyApp(),
     ),
   );
@@ -62,6 +61,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return InitializationPage();
+    return const InitializationPage();
   }
 }

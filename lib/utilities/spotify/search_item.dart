@@ -4,7 +4,7 @@ class SearchItem {
   final String imgUrl;
   final String ctxUri;
 
-  SearchItem({
+  const SearchItem({
     required this.name,
     required this.artist,
     required this.imgUrl,

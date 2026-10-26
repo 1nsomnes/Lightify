@@ -23,9 +23,8 @@ extension Auth on SpotifyService {
   }
 
   static Uint8List sha256(String data) {
-    final bytes = utf8.encode(data);
-    final digest = crypto.sha256.convert(bytes);
-    return Uint8List.fromList(digest.bytes);
+    final bytes = crypto.sha256.convert(utf8.encode(data)).bytes;
+    return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
 
   Future<AuthError> isValidToken(String token) async {
@@ -57,13 +56,14 @@ extension Auth on SpotifyService {
       return false;
     }
     final String newToken = refreshResponse["access_token"];
-    await _storage.write(key: "token", value: newToken);
     setToken(newToken);
+    final writes = [_storage.write(key: "token", value: newToken)];
 
     if (refreshResponse.containsKey("refresh_token")) {
       _refreshToken = refreshResponse["refresh_token"];
-      await _storage.write(key: "refresh_token", value: _refreshToken);
+      writes.add(_storage.write(key: "refresh_token", value: _refreshToken));
     }
+    await Future.wait(writes);
 
     _authProvider.setIsAuthenticated(true);
     if (updatePlayerToken != null) updatePlayerToken!(_token);
@@ -71,54 +71,45 @@ extension Auth on SpotifyService {
     return true;
   }
 
-  Future<Map<String, dynamic>?> requestTokenFromRefresh() async {
-    final uri = Uri.parse('https://accounts.spotify.com/api/token');
+  static final Uri _tokenUri = Uri.parse(
+    'https://accounts.spotify.com/api/token',
+  );
 
+  Future<Map<String, dynamic>?> _postToken(
+    Map<String, String> body,
+    String failureLabel,
+  ) async {
     final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: {
-        'refresh_token': _refreshToken,
-        'grant_type': 'refresh_token',
-        'client_id': _clientId,
-      },
+      _tokenUri,
+      headers: const {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body,
     );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> json = jsonDecode(response.body);
-      return json;
-    }
-    debugPrint("failed refresh: ${response.statusCode} ${response.body}");
+    if (response.statusCode == 200) return jsonDecode(response.body);
 
+    debugPrint("$failureLabel: ${response.statusCode} ${response.body}");
     return null;
+  }
+
+  Future<Map<String, dynamic>?> requestTokenFromRefresh() {
+    return _postToken({
+      'refresh_token': _refreshToken,
+      'grant_type': 'refresh_token',
+      'client_id': _clientId,
+    }, "failed refresh");
   }
 
   Future<Map<String, dynamic>> pkceRequestToken(
     String code,
     String codeVerifier,
   ) async {
-    final uri = Uri.parse('https://accounts.spotify.com/api/token');
-
-    final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'code': code,
-        'redirect_uri': 'http://127.0.0.1:3434',
-        'grant_type': 'authorization_code',
-        'client_id': _clientId,
-        'code_verifier': codeVerifier,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> json = jsonDecode(response.body);
-      return json;
-    }
-
-    debugPrint("token exchange failed: ${response.statusCode} ${response.body}");
-    return {"Error": "Bad response"};
+    return await _postToken({
+          'code': code,
+          'redirect_uri': 'http://127.0.0.1:3434',
+          'grant_type': 'authorization_code',
+          'client_id': _clientId,
+          'code_verifier': codeVerifier,
+        }, "token exchange failed") ??
+        {"Error": "Bad response"};
   }
 }

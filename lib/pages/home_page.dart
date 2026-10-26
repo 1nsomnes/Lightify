@@ -25,11 +25,14 @@ class _HomePageState extends State<HomePage> {
   late final StreamSubscription _playbackChangeSubscription;
   String deviceId = "";
 
-  Future<void> loadHtmlFromAssets(BuildContext context) async {
-    String html = await rootBundle.loadString('assets/player.html');
-    if (context.mounted) {
-      html = html.replaceAll("{token}", spotifyService.getToken);
-      _controller.loadHtmlString(html);
+  static const Color _buttonColor = Color(0xFF616161); // Colors.grey[700]
+
+  Future<void> loadHtmlFromAssets() async {
+    final html = await rootBundle.loadString('assets/player.html');
+    if (mounted) {
+      _controller.loadHtmlString(
+        html.replaceAll("{token}", spotifyService.getToken),
+      );
     }
   }
 
@@ -49,6 +52,11 @@ class _HomePageState extends State<HomePage> {
     spotifyService = GetIt.instance.get<SpotifyService>();
     spotifyService.updatePlayerToken = _updateToken;
     _playbackChangeSubscription = spotifyService.onPlaybackStateChanged.listen((state) {
+      if (state.playing == playbackState.playing &&
+          state.shuffleState == playbackState.shuffleState &&
+          state.repeatState == playbackState.repeatState) {
+        return;
+      }
       setState(() {
         playbackState = state;
       });
@@ -84,10 +92,13 @@ class _HomePageState extends State<HomePage> {
             case "updateDataFromPlayer":
               spotifyService.processStateFromPlayer(json["body"]);
             case "setDeviceId":
-              spotifyService.setDeviceId(json["body"]["device_id"]);
-              setState(() {
-                deviceId = json["body"]["device_id"];
-              });
+              final String id = json["body"]["device_id"];
+              spotifyService.setDeviceId(id);
+              if (id != deviceId) {
+                setState(() {
+                  deviceId = id;
+                });
+              }
             case "authenticationFailed":
               spotifyService.attemptRefresh();
             default:
@@ -96,7 +107,7 @@ class _HomePageState extends State<HomePage> {
         },
       );
 
-    loadHtmlFromAssets(context);
+    loadHtmlFromAssets();
 
     //TODO: get media keys working...
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
@@ -104,14 +115,17 @@ class _HomePageState extends State<HomePage> {
 
   void _updateData(dynamic json) {
     //debugPrint("data updated: $json");
+    //TODO: investigate better error handling
+    final String newArtist = json["artists"][0]["name"];
+    final String newSong = json["name"];
+    final url = ProcessResponse.smallestImageUrl(json["album"]?["images"]);
+    final newImgurl = url.isEmpty ? "null" : url;
+    if (newArtist == artist && newSong == song && newImgurl == imgurl) return;
     setState(() {
-      //TODO: investigate better error handling
-      artist = json["artists"][0]["name"];
-      song = json["name"];
-      final url = ProcessResponse.smallestImageUrl(json["album"]?["images"]);
-      imgurl = url.isEmpty ? "null" : url;
+      artist = newArtist;
+      song = newSong;
+      imgurl = newImgurl;
     });
-    return;
   }
 
   void _togglePlay() {
@@ -141,7 +155,7 @@ class _HomePageState extends State<HomePage> {
 
   void _prev() {
     spotifyService.getPlaybackState(notifyListeners: false).then((_) {
-    _controller.runJavaScript("previous();");
+      _controller.runJavaScript("previous();");
     });
   }
 
@@ -169,6 +183,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _setPlaying(bool val) {
+    if (playbackState.playing == val) return;
     setState(() {
       playbackState.playing = val;
     });
@@ -185,6 +200,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imgurl != "null";
     return Center(
       child: Column(
         children: [
@@ -197,19 +213,19 @@ class _HomePageState extends State<HomePage> {
               Container(
                 width: 100,
                 height: 100,
-                color: imgurl == "null" ? Colors.blue : null,
-                decoration: imgurl != "null"
+                color: hasImage ? null : Colors.blue,
+                decoration: hasImage
                     ? BoxDecoration(
                         image: DecorationImage(image: NetworkImage(imgurl)),
                       )
                     : null,
-                margin: EdgeInsets.all(20),
+                margin: const EdgeInsets.all(20),
               ),
               Expanded(
                 child: Column(
                   children: [
-                    Text(song, style: TextStyle(fontSize: 16)),
-                    Text(artist, style: TextStyle(fontSize: 12)),
+                    Text(song, style: const TextStyle(fontSize: 16)),
+                    Text(artist, style: const TextStyle(fontSize: 12)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -221,13 +237,13 @@ class _HomePageState extends State<HomePage> {
                               : Icons.shuffle_on_rounded,
                           onPressed: _toggleShuffle,
                           size: 40,
-                          backgroundColor: Colors.grey[700]!,
+                          backgroundColor: _buttonColor,
                         ),
                         buildCircleButton(
                           icon: Icons.skip_previous,
                           onPressed: _prev,
                           size: 40,
-                          backgroundColor: Colors.grey[700]!,
+                          backgroundColor: _buttonColor,
                         ),
                         buildCircleButton(
                           icon: playbackState.playing
@@ -241,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                           icon: Icons.skip_next,
                           onPressed: _next,
                           size: 40,
-                          backgroundColor: Colors.grey[700]!,
+                          backgroundColor: _buttonColor,
                         ),
                         buildCircleButton(
                           icon:
@@ -253,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                               : Icons.repeat_on,
                           onPressed: _switchRepeatMode,
                           size: 40,
-                          backgroundColor: Colors.grey[700]!,
+                          backgroundColor: _buttonColor,
                         ),
                       ],
                     ),

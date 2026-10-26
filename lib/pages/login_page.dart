@@ -11,21 +11,88 @@ import 'package:provider/provider.dart';
 const _scope =
     'streaming playlist-read-private user-read-email user-read-private user-library-read user-library-modify user-read-playback-state user-modify-playback-state';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final SpotifyService _spotifyService = GetIt.instance.get<SpotifyService>();
+  final FlutterSecureStorage _storage = GetIt.instance.get<FlutterSecureStorage>();
+  late final TextEditingController _textController = TextEditingController(
+    text: _spotifyService.getClientId,
+  );
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final clientId = _textController.text;
+    _spotifyService.setClientId(clientId);
+    await _storage.write(key: "client_id", value: clientId);
+
+    final codeVerifier = Auth.generateRandomString(64);
+    final codeChallenge = base64UrlEncode(
+      Auth.sha256(codeVerifier),
+    ).replaceAll("=", "");
+
+    final url = Uri.parse('https://accounts.spotify.com/authorize').replace(
+      queryParameters: {
+        'response_type': 'code',
+        'client_id': clientId,
+        'scope': _scope,
+        'code_challenge_method': 'S256',
+        'code_challenge': codeChallenge,
+        'redirect_uri': 'http://127.0.0.1:3434',
+      },
+    );
+
+    final result = await loopbackAuthorize(authorizeUrl: url);
+
+    final code = result.queryParameters["code"];
+    if (code == null) {
+      debugPrint(
+        "Spotify authorization failed: ${result.queryParameters["error"]}",
+      );
+      return;
+    }
+
+    final Map<String, dynamic> json = await _spotifyService.pkceRequestToken(
+      code,
+      codeVerifier,
+    );
+    final String? token = json["access_token"];
+    if (token == null || !mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final String? refreshToken = json["refresh_token"];
+
+    await Future.wait([
+      _storage.write(key: "token", value: token),
+      if (refreshToken != null)
+        _storage.write(key: "refresh_token", value: refreshToken),
+    ]);
+
+    if (refreshToken != null) _spotifyService.setRefreshToken(refreshToken);
+    _spotifyService.setToken(token);
+    authProvider.setIsAuthenticated(true);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final textController = TextEditingController(text: GetIt.instance.get<SpotifyService>().getClientId);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-          width: 300,
+            width: 300,
             child: TextField(
-              controller: textController,
+              controller: _textController,
               decoration: const InputDecoration(
                 hintText: 'Enter client id',
                 border: OutlineInputBorder(
@@ -34,74 +101,13 @@ class LoginPage extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 10,),
+          const SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () async {
-              SpotifyService spotifyService = GetIt.instance
-                  .get<SpotifyService>();
-
-              spotifyService.setClientId(textController.text);
-              await FlutterSecureStorage().write(key: "client_id", value: textController.text);
-
-              String codeVerifier = Auth.generateRandomString(64);
-              String codeChallenge = base64UrlEncode(Auth.sha256(codeVerifier));
-              codeChallenge = codeChallenge.replaceAll("=", "");
-
-              Uri url = Uri.parse('https://accounts.spotify.com/authorize')
-                  .replace(
-                    queryParameters: {
-                      'response_type': 'code',
-                      'client_id': spotifyService.getClientId,
-                      'scope': _scope,
-                      'code_challenge_method': 'S256',
-                      'code_challenge': codeChallenge,
-                      'redirect_uri': 'http://127.0.0.1:3434',
-                    },
-                  );
-
-              var promise = loopbackAuthorize(authorizeUrl: url);
-              var result = await promise;
-
-              final code = result.queryParameters["code"];
-              if (code == null) {
-                debugPrint("Spotify authorization failed: ${result.queryParameters["error"]}");
-                return;
-              }
-
-              Map<String, dynamic> json = await spotifyService.pkceRequestToken(
-                code,
-                codeVerifier,
-              );
-              final String? token = json["access_token"];
-              if (token == null) return;
-
-              if (context.mounted) {
-                final authProvider = Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                );
-
-                final storage = FlutterSecureStorage();
-                await storage.write(key: "token", value: token);
-
-                if (json.containsKey("refresh_token")) {
-                  String refreshToken = json["refresh_token"];
-                  await storage.write(
-                    key: "refresh_token",
-                    value: refreshToken,
-                  );
-                  spotifyService.setRefreshToken(refreshToken);
-                }
-
-                spotifyService.setToken(token);
-                authProvider.setIsAuthenticated(true);
-              }
-            },
-
+            onPressed: _login,
             style: const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll<Color>(Color(0xff1DB954)),
             ),
-            child: Text(
+            child: const Text(
               "Login To Spotify",
               style: TextStyle(color: Colors.white),
             ),

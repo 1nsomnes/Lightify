@@ -8,44 +8,44 @@ Future<Uri> loopbackAuthorize({
 }) async {
   final server =
       await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-  
-  if (!await launchUrl(authorizeUrl, mode: LaunchMode.externalApplication)) {
-    server.close();
-    throw Exception('Could not launch $authorizeUrl');
-  }
-  
-  // browsers can hit the server with unrelated requests (favicon, prefetch),
-  // so wait for the actual OAuth redirect
-  late final HttpRequest request;
-  await for (final req in server) {
-    final params = req.uri.queryParameters;
-    if (params.containsKey("code") || params.containsKey("error")) {
-      request = req;
-      break;
+
+  try {
+    if (!await launchUrl(authorizeUrl, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $authorizeUrl');
     }
-    debugPrint("loopback ignoring request to ${req.uri.path}");
-    req.response
-      ..statusCode = 404
-      ..close();
-  }
-  
-  request.response
-    ..statusCode = 200
-    ..headers.set('Content-Type', 'text/html; charset=utf-8')
-    ..write('''
+
+    // browsers can hit the server with unrelated requests (favicon, prefetch),
+    // so wait for the actual OAuth redirect
+    await for (final req in server) {
+      final params = req.uri.queryParameters;
+      if (!params.containsKey("code") && !params.containsKey("error")) {
+        debugPrint("loopback ignoring request to ${req.uri.path}");
+        req.response
+          ..statusCode = 404
+          ..close();
+        continue;
+      }
+
+      req.response
+        ..statusCode = 200
+        ..headers.set('Content-Type', 'text/html; charset=utf-8')
+        ..write('''
       <html>
         <body>
           <h2>Authentication complete</h2>
           <p>You can now close this window and return to the app.</p>
         </body>
       </html>
-    ''')
-    ..close();
-  
-  // make sure that html is actually served
-  await Future.delayed(Duration(milliseconds: 50));
-  
-  await server.close(force: true);
-  
-  return request.uri;
+    ''');
+
+      // completes once the html has actually been sent to the browser
+      await req.response.close();
+
+      return req.uri;
+    }
+
+    throw StateError('Loopback server closed before receiving a redirect');
+  } finally {
+    await server.close(force: true);
+  }
 }

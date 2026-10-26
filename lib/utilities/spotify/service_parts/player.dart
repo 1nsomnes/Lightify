@@ -5,60 +5,40 @@ extension Player on SpotifyService {
   Future<Response> playPlaylistOrAlbums(
     String uri, {
     String deviceId = "",
-  }) async {
-
-    final Map<String, dynamic> payload = {"context_uri": uri};
-
-    final response = await dio.put(
+  }) {
+    return dio.put(
       "me/player/play",
-      options: Options(headers: {
-        "Content-Type" : "application/json"
-      }),
       queryParameters: {
         if (deviceId.isNotEmpty) "device_id" : deviceId
       },
-      data: jsonEncode(payload),
+      data: {"context_uri": uri},
     );
-
-    //debugPrint(response.body.toString());
-
-    return response;
   }
 
   Future<Response> setShuffleMode(
     ShuffleState shuffleState, {
     String deviceId = "",
-  }) async {
-
-    final response = await dio.put(
+  }) {
+    return dio.put(
       "me/player/shuffle",
       queryParameters: {
         "state" : shuffleState.value,
         if (deviceId.isNotEmpty) "device_id": deviceId
       }
     );
-
-    //debugPrint("response: ${response.body}");
-
-    return response;
   }
 
   Future<Response> setRepeatMode(
     RepeatState repeatState, {
     String deviceId = "",
-  }) async {
-
-    final response = await dio.put(
+  }) {
+    return dio.put(
       "me/player/repeat",
       queryParameters: {
         "state": repeatState.value,
         if (deviceId.isNotEmpty) "device_id" : deviceId
       }
     );
-
-    //debugPrint("response: ${response.body}");
-
-    return response;
   }
 
   Future<Response> getPlaybackState({notifyListeners = true}) async {
@@ -68,111 +48,80 @@ extension Player on SpotifyService {
     );
 
     if (response.statusCode == 200 && notifyListeners) {
-      var json = response.data;
+      final json = response.data;
 
-      RepeatState repeatState = switch (json["repeat_state"]) {
-        "off" => RepeatState.repeatOff,
-        "context" => RepeatState.repeatContext,
-        _ => RepeatState.repeatOne,
-      };
-      ShuffleState shuffleState = switch (json["shuffle_state"]) {
-        true => ShuffleState.shuffleOn,
-        _ => ShuffleState.shuffleOff,
-      };
-
-      bool isPlaying = json["is_playing"] == true ? true : false;
-
-      PlaybackState playbackState = PlaybackState(
-        playing: isPlaying,
-        shuffleState: shuffleState,
-        repeatState: repeatState,
-      );
-
-      _playbackStateCtrl.add(playbackState);
+      _playbackStateCtrl.add(PlaybackState(
+        playing: json["is_playing"] == true,
+        shuffleState: json["shuffle_state"] == true
+            ? ShuffleState.shuffleOn
+            : ShuffleState.shuffleOff,
+        repeatState: switch (json["repeat_state"]) {
+          "off" => RepeatState.repeatOff,
+          "context" => RepeatState.repeatContext,
+          _ => RepeatState.repeatOne,
+        },
+      ));
     }
 
     return response;
   }
 
   void processStateFromPlayer(Map<String, dynamic> json) {
-    RepeatState repeatState = switch (json["repeat_mode"]) {
-      0 => RepeatState.repeatOff,
-      1 => RepeatState.repeatContext,
-      _ => RepeatState.repeatOne,
-    };
-    ShuffleState shuffleState = switch (json["shuffle_mode"]) {
-      1 => ShuffleState.shuffleOn,
-      _ => ShuffleState.shuffleOff,
-    };
-
-    bool isPlaying = json["paused"] == false ? true : false;
-
-    PlaybackState playbackState = PlaybackState(
-      playing: isPlaying,
-      shuffleState: shuffleState,
-      repeatState: repeatState,
-    );
-
-    _playbackStateCtrl.add(playbackState);
+    _playbackStateCtrl.add(PlaybackState(
+      playing: json["paused"] == false,
+      shuffleState: json["shuffle_mode"] == 1
+          ? ShuffleState.shuffleOn
+          : ShuffleState.shuffleOff,
+      repeatState: switch (json["repeat_mode"]) {
+        0 => RepeatState.repeatOff,
+        1 => RepeatState.repeatContext,
+        _ => RepeatState.repeatOne,
+      },
+    ));
   }
 
-  Future<Response> getLikedPlaylists(int limit, int offset) async {
-
-    final response = await dio.get(
+  Future<Response> getLikedPlaylists(int limit, int offset) {
+    return dio.get(
       "me/playlists",
       queryParameters: {
         "limit" : limit.toString(),
         "offset" : offset.toString()
       },
     );
-
-    return response;
   }
 
-  Future<Response> getLikedSongs(int limit, int offset) async {
-
-    final response = await dio.get(
+  Future<Response> getLikedSongs(int limit, int offset) {
+    return dio.get(
       "me/tracks",
       queryParameters: {
         "limit" : limit.toString(),
         "offset" : offset.toString()
       },
     );
-
-    return response;
   }
 
-
-  Future<Response> getLikedAlbums(int limit, int offset) async {
-
-    final response = await dio.get(
+  Future<Response> getLikedAlbums(int limit, int offset) {
+    return dio.get(
       "me/albums",
       queryParameters: {
         "limit" : limit.toString(),
         "offset" : offset.toString()
       },
     );
-
-    return response;
   }
 
-  Future<Response> queue(String uri, {String deviceId = ""}) async {
-
-    final response = await dio.post(
+  Future<Response> queue(String uri, {String deviceId = ""}) {
+    return dio.post(
       "me/player/queue",
       queryParameters: {
         "uri": uri,
         if(deviceId.isNotEmpty) "device_id": deviceId
       }
     );
-
-    //debugPrint(response.body.toString());
-
-    return response;
   }
 
-  Future<Response> searchSpotify(String query, int limit, int offset) async {
-    final response = await dio.get(
+  Future<Response> searchSpotify(String query, int limit, int offset) {
+    return dio.get(
       "search",
       queryParameters: {
         'q': query,
@@ -181,36 +130,22 @@ extension Player on SpotifyService {
         'offset': offset,
       },
     );
-
-    return response;
   }
 
-  Future<Response> playTracks(List<String> uris, {String deviceId = ""}) async {
-
-    final Map<String, dynamic> payload = {"uris": uris};
-
-    final response = await dio.put(
+  Future<Response> playTracks(List<String> uris, {String deviceId = ""}) {
+    return dio.put(
       "me/player/play",
-      options: Options(headers: {'Content-Type': 'application/json'}),
       queryParameters: {
         if(deviceId.isNotEmpty) "device_id" : deviceId
       },
-      data: jsonEncode(payload),
+      data: {"uris": uris},
     );
-
-
-    return response;
   }
 
-  Future<Response> transferPlayback() async {
-    final dynamic payload = {"device_ids": [ _deviceId ]};
-
-    final response = await dio.put(
+  Future<Response> transferPlayback() {
+    return dio.put(
       "/me/player",
-      options: Options(headers: {'Content-Type': 'application/json'}),
-      data: jsonEncode(payload),
+      data: {"device_ids": [ _deviceId ]},
     );
-
-    return response;
   }
 }

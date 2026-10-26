@@ -30,39 +30,37 @@ class SpotifyService {
   }) : _storage = storage,
        _authProvider = authProvider {
     http = SpotifyHttpClient(
-      onUnauthorized: () async {
-        debugPrint("HTTP Client had a problem with the token");
-      },
+      onUnauthorized: () =>
+          debugPrint("HTTP Client had a problem with the token"),
       spotifyService: this,
     );
 
-    dio = Dio(
-      BaseOptions(
-        baseUrl: "https://api.spotify.com/v1/",
-        headers: {'Authorization': 'Bearer $_token'},
-      ),
-    );
+    dio = Dio(BaseOptions(baseUrl: "https://api.spotify.com/v1/"));
 
-    dio.interceptors.addAll([
-      //LogInterceptor(requestBody: true, responseBody: true),
+    dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
-          var opts = error.requestOptions;
+          final opts = error.requestOptions;
+          final response = error.response;
+          final statusCode = response?.statusCode;
           debugPrint(
-            "Spotify API error ${error.response?.statusCode} on ${opts.path}: ${error.response?.data}",
+            "Spotify API error $statusCode on ${opts.path}: ${response?.data}",
           );
-          if (error.response?.statusCode == 401 &&
+          if (statusCode == 401 &&
               opts.extra["__retry"] != true &&
               await attemptRefresh()) {
             opts.headers["Authorization"] = "Bearer $_token";
             opts.extra["__retry"] = true;
-            final cloneReq = await dio.fetch(opts);
-            return handler.resolve(cloneReq);
+            try {
+              return handler.resolve(await dio.fetch(opts));
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
           }
           return handler.next(error);
         },
       ),
-    ]);
+    );
   }
 
   String _token = "";
