@@ -100,8 +100,6 @@ class _QueuePageState extends State<QueuePage> {
       case LogicalKeyboardKey.keyK:
         _moveSelection(-1);
       // Shift+Q toggles the queue, so it also closes it
-      case LogicalKeyboardKey.keyQ when e.character == "Q":
-        PopupHost.of(context).close();
       case LogicalKeyboardKey.keyA when e.character == "A":
         if (_selected < _queue.length) {
           openAlbumPage(context, _queue[_selected]);

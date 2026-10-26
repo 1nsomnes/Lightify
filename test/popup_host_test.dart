@@ -58,7 +58,7 @@ void main() {
     expect(find.text("Second"), findsOneWidget);
   });
 
-  testWidgets("B closes back to the base page and restores focus", (
+  testWidgets("Esc closes back to the base page and restores focus", (
     tester,
   ) async {
     await pumpHost(tester);
@@ -70,7 +70,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(baseFocus.hasFocus, isFalse);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.keyB);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
     expect(find.text("First"), findsNothing);
@@ -107,5 +107,36 @@ void main() {
     expect(find.text("Second"), findsNothing);
     await tester.pump();
     expect(baseFocus.hasFocus, isTrue);
+  });
+
+  testWidgets("Esc without a popup calls onEscape", (tester) async {
+    var escaped = 0;
+    final focus = FocusNode();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PopupHost(
+          onEscape: () => escaped++,
+          child: Focus(
+            focusNode: focus,
+            autofocus: true,
+            child: const Text("base"),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    expect(escaped, 1);
+
+    // with a popup open, Esc only closes the popup
+    PopupHost.of(
+      tester.element(find.text("base")),
+    ).show(const PopupPage(title: "First", child: SizedBox()));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(escaped, 1);
+    expect(find.text("First"), findsNothing);
   });
 }

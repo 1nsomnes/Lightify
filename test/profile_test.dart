@@ -167,11 +167,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // the artist page is gone; the user profile tried to load (no network in
-    // tests) and B returns straight to the base page
+    // tests) and Esc returns straight to the base page
     expect(find.text("Joy Division"), findsNothing);
     expect(find.textContaining("user profile"), findsOneWidget);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.keyB);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(host.isOpen, isFalse);
     expect(find.text("base"), findsOneWidget);

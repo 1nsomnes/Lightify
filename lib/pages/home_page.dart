@@ -10,6 +10,7 @@ import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
+import 'package:lightify/utilities/window_channel.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -205,6 +206,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final hasImage = imgurl != "null";
     return PopupHost(
+      onEscape: () => windowChannel.invokeMethod("hideWindow"),
       child: Center(
         child: Column(
           children: [

@@ -8,10 +8,14 @@ import 'package:window_manager/window_manager.dart';
 /// drops the old one, so closing always returns to the base page. When the
 /// window loses focus (clicked away, Esc) the popup is dropped immediately,
 /// so the window always reopens on the base page.
+///
+/// Esc anywhere in [child] closes the popup, or calls [onEscape] when none is
+/// open.
 class PopupHost extends StatefulWidget {
-  const PopupHost({super.key, required this.child});
+  const PopupHost({super.key, required this.child, this.onEscape});
 
   final Widget child;
+  final VoidCallback? onEscape;
 
   static PopupHostState of(BuildContext context) =>
       context.findAncestorStateOfType<PopupHostState>()!;
@@ -125,15 +129,33 @@ class PopupHostState extends State<PopupHost>
     super.dispose();
   }
 
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.escape) {
+      return KeyEventResult.ignored;
+    }
+    if (isOpen) {
+      close();
+    } else {
+      widget.onEscape?.call();
+    }
+    return KeyEventResult.handled;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ExcludeFocus(excluding: _entries.isNotEmpty, child: widget.child),
-        for (int i = 0; i < _entries.length; i++)
-          _buildPopup(_entries[i], withScrim: i == 0),
-      ],
+    // key events bubble up here from whatever is focused, base page or popup
+    return Focus(
+      canRequestFocus: false,
+      onKeyEvent: _onKey,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ExcludeFocus(excluding: _entries.isNotEmpty, child: widget.child),
+          for (int i = 0; i < _entries.length; i++)
+            _buildPopup(_entries[i], withScrim: i == 0),
+        ],
+      ),
     );
   }
 
@@ -183,7 +205,7 @@ class PopupHostState extends State<PopupHost>
   }
 }
 
-/// Layout shared by every popup: a back button (bound to B) and a title,
+/// Layout shared by every popup: a back button (Esc, via PopupHost) and a title,
 /// above the page's content. Unhandled keys are passed to [onKey].
 class PopupPage extends StatefulWidget {
   const PopupPage({
@@ -224,14 +246,9 @@ class _PopupPageState extends State<PopupPage> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: _focus,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.keyB) {
-          PopupHost.of(context).close();
-          return KeyEventResult.handled;
-        }
-        return widget.onKey?.call(event) ?? KeyEventResult.ignored;
-      },
+      // Esc is handled by PopupHost
+      onKeyEvent: (node, event) =>
+          widget.onKey?.call(event) ?? KeyEventResult.ignored,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -242,7 +259,7 @@ class _PopupPageState extends State<PopupPage> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
                   color: Colors.white,
-                  tooltip: "Back (B)",
+                  tooltip: "Back (Esc)",
                   onPressed: () => PopupHost.of(context).close(),
                 ),
                 const SizedBox(width: 4),

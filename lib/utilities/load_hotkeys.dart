@@ -4,9 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
+import 'package:lightify/utilities/window_channel.dart';
 import 'package:window_manager/window_manager.dart';
-
-const _windowChannel = MethodChannel('com.ced/window_utils');
 
 class LoadHotKeys {
   static Future<void> _toggleWindow() async {
@@ -14,7 +13,7 @@ class LoadHotKeys {
     if (isVisible) {
       await windowManager.hide();
     } else {
-      await _windowChannel.invokeMethod("moveToActiveDisplay");
+      await windowChannel.invokeMethod("moveToActiveDisplay");
       await windowManager.show();
       await windowManager.focus();
     }

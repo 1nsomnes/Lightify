@@ -45,7 +45,7 @@ right now.
 | KeyBind | Action |
 | - | - |
 | Meta + Shift + S | Open/Close lightify (works anywhere on your Mac) |
-| Esc | Close Lightify |
+| Esc | Close the current pop up page, or Lightify if none is open |
 | Space | Play/Pause |
 | H | Previous Song |
 | L | Next Song |
@@ -58,10 +58,9 @@ right now.
 | M | Switch to "my catalog" | 
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
-| Shift + Q | Open/close the queue |
+| Shift + Q | Open the queue |
 | Shift + A | Open the selected item's album (tracks/albums) |
 | Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
-| B | Close the current pop up page |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |
 | Ctrl + R | Restart |
