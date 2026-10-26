@@ -105,6 +105,10 @@
       );
     }
 
+    function seek(ms) {
+      window.spotifyPlayer.seek(ms);
+    }
+
     function reconnect() {
       console.log("Reconnect");
       window.spotifyPlayer.connect();

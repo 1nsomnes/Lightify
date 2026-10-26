@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-import 'package:lightify/components/circle_buttons.dart';
+import 'package:lightify/components/now_playing.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
@@ -25,8 +25,6 @@ class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   late final SpotifyService spotifyService;
   late final StreamSubscription _playbackChangeSubscription;
-
-  static const Color _buttonColor = Color(0xFF616161); // Colors.grey[700]
 
   Future<void> loadHtmlFromAssets() async {
     final html = await rootBundle.loadString('assets/player.html');
@@ -96,6 +94,7 @@ class _HomePageState extends State<HomePage> {
               _updateData(json["body"]);
             case "updateDataFromPlayer":
               spotifyService.processStateFromPlayer(json["body"]);
+              _updateProgress(json["body"]);
             case "setDeviceId":
               spotifyService.setDeviceId(json["body"]["device_id"]);
             case "authenticationFailed":
@@ -117,7 +116,7 @@ class _HomePageState extends State<HomePage> {
     //TODO: investigate better error handling
     final String newArtist = json["artists"][0]["name"];
     final String newSong = json["name"];
-    final url = ProcessResponse.smallestImageUrl(json["album"]?["images"]);
+    final url = _artworkUrl(json["album"]?["images"]);
     final newImgurl = url.isEmpty ? "null" : url;
     if (newArtist == artist && newSong == song && newImgurl == imgurl) return;
     setState(() {
@@ -125,6 +124,35 @@ class _HomePageState extends State<HomePage> {
       song = newSong;
       imgurl = newImgurl;
     });
+  }
+
+  // the player's state includes where the song is; NowPlaying advances the bar
+  // from there while it plays
+  void _updateProgress(dynamic state) {
+    final position = state["position"];
+    final duration = state["duration"];
+    if (position is! num || duration is! num) return;
+    setState(() {
+      _positionMs = position.toInt();
+      _durationMs = duration.toInt();
+      _positionAt = DateTime.now();
+    });
+  }
+
+  // a mid-sized cover (~300px) stays sharp at the player's size; Spotify lists
+  // images largest first
+  static String _artworkUrl(dynamic images) {
+    if (images is! List || images.isEmpty) return "";
+    final image = images.length > 1 ? images[1] : images.first;
+    return image["url"] ?? ProcessResponse.smallestImageUrl(images);
+  }
+
+  void _seek(int ms) {
+    setState(() {
+      _positionMs = ms;
+      _positionAt = DateTime.now();
+    });
+    _controller.runJavaScript("seek($ms);");
   }
 
   void _togglePlay() {
@@ -190,9 +218,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  String song = "Unkown Song";
-  String artist = "Unkown Artist";
+  String song = "Nothing playing";
+  String artist = "Pick something below";
   String imgurl = "null";
+  int _positionMs = 0;
+  int _durationMs = 0;
+  DateTime _positionAt = DateTime.now();
   PlaybackState playbackState = PlaybackState(
     playing: false,
     shuffleState: ShuffleState.shuffleOff,
@@ -201,7 +232,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = imgurl != "null";
     return PopupHost(
       onEscape: () => windowChannel.invokeMethod("hideWindow"),
       child: Center(
@@ -211,76 +241,20 @@ class _HomePageState extends State<HomePage> {
               size: Size.zero,
               child: WebViewWidget(controller: _controller),
             ),
-            Row(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  color: hasImage ? null : Colors.blue,
-                  decoration: hasImage
-                      ? BoxDecoration(
-                          image: DecorationImage(image: NetworkImage(imgurl)),
-                        )
-                      : null,
-                  margin: const EdgeInsets.all(20),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(song, style: const TextStyle(fontSize: 16)),
-                      Text(artist, style: const TextStyle(fontSize: 12)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          buildCircleButton(
-                            icon:
-                                playbackState.shuffleState ==
-                                    ShuffleState.shuffleOff
-                                ? Icons.shuffle
-                                : Icons.shuffle_on_rounded,
-                            onPressed: _toggleShuffle,
-                            size: 40,
-                            backgroundColor: _buttonColor,
-                          ),
-                          buildCircleButton(
-                            icon: Icons.skip_previous,
-                            onPressed: _prev,
-                            size: 40,
-                            backgroundColor: _buttonColor,
-                          ),
-                          buildCircleButton(
-                            icon: playbackState.playing
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            onPressed: _togglePlay,
-                            size: 40,
-                            backgroundColor: Colors.blue,
-                          ),
-                          buildCircleButton(
-                            icon: Icons.skip_next,
-                            onPressed: _next,
-                            size: 40,
-                            backgroundColor: _buttonColor,
-                          ),
-                          buildCircleButton(
-                            icon:
-                                playbackState.repeatState ==
-                                    RepeatState.repeatOff
-                                ? Icons.repeat
-                                : playbackState.repeatState ==
-                                      RepeatState.repeatOne
-                                ? Icons.repeat_one
-                                : Icons.repeat_on,
-                            onPressed: _switchRepeatMode,
-                            size: 40,
-                            backgroundColor: _buttonColor,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            NowPlaying(
+              song: song,
+              artist: artist,
+              imageUrl: imgurl == "null" ? "" : imgurl,
+              state: playbackState,
+              positionMs: _positionMs,
+              durationMs: _durationMs,
+              positionAt: _positionAt,
+              onTogglePlay: _togglePlay,
+              onNext: _next,
+              onPrevious: _prev,
+              onShuffle: _toggleShuffle,
+              onRepeat: _switchRepeatMode,
+              onSeek: _seek,
             ),
             // fill only the space left in the window so the list scrolls
             // instead of overflowing
