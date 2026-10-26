@@ -102,6 +102,10 @@ class _QueuePageState extends State<QueuePage> {
         if (_selected < _queue.length) {
           openAlbumPage(context, _queue[_selected]);
         }
+      case LogicalKeyboardKey.keyO when e.character == "O":
+        if (_selected < _queue.length) {
+          openCollectionPage(context, _queue[_selected]);
+        }
       case LogicalKeyboardKey.keyP when e.character == "P":
         if (_selected < _queue.length) {
           openCreatorPage(context, _queue[_selected]);

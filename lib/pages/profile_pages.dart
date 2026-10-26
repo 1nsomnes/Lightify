@@ -52,6 +52,30 @@ void openAlbumPage(BuildContext context, SearchItem item) {
   );
 }
 
+/// Opens the page of a selected playlist or album; anything else (tracks
+/// included) opens nothing.
+void openCollectionPage(BuildContext context, SearchItem item) {
+  final parts = item.ctxUri.split(":");
+  if (parts.length < 3) return;
+  if (parts[1] == "album") {
+    openAlbumPage(context, item);
+    return;
+  }
+  if (parts[1] != "playlist") {
+    debugPrint("no playlist or album to open for ${item.ctxUri}");
+    return;
+  }
+  final id = parts[2];
+  PopupHost.of(context).show(
+    ProfileView(
+      kind: "Playlist",
+      icon: Icons.queue_music,
+      roundArtwork: false,
+      load: () => _loadPlaylist(id),
+    ),
+  );
+}
+
 Future<ProfileData> _loadArtist(String id) async {
   final spotify = GetIt.instance.get<SpotifyService>();
   // the artist itself is required; the lists are shown when available
@@ -190,6 +214,50 @@ Future<ProfileData> _loadAlbum(String id) async {
               albumUri: albumUri,
             ),
         ],
+      ),
+    ],
+  );
+}
+
+// a big playlist is fetched a page (100 songs) at a time; stop somewhere sane
+const _maxPlaylistPages = 10;
+
+Future<ProfileData> _loadPlaylist(String id) async {
+  final spotify = GetIt.instance.get<SpotifyService>();
+  final playlist = (await spotify.getPlaylist(id)).data;
+  final String playlistUri = playlist["uri"] ?? "spotify:playlist:$id";
+
+  // Spotify is renaming a playlist's "tracks" to "items" (and each entry's
+  // "track" to "item"); accept either
+  dynamic page = playlist["items"] ?? playlist["tracks"];
+  final entries = <dynamic>[];
+  for (int i = 0; page != null && i < _maxPlaylistPages; i++) {
+    entries.addAll(page["items"] ?? []);
+    final String? next = page["next"];
+    if (next == null) break;
+    page = (await _orNull(spotify.getPage(next)))?.data;
+  }
+
+  final songs = [
+    for (final entry in entries)
+      if ((entry?["item"] ?? entry?["track"]) case final track?)
+        if (track["uri"] != null) ProcessResponse.queueItem(track),
+  ];
+  final total = (playlist["items"] ?? playlist["tracks"])?["total"];
+  return ProfileData(
+    name: playlist["name"] ?? "",
+    imageUrl: _largestImageUrl(playlist["images"]),
+    details: [
+      playlist["owner"]?["display_name"] ?? "",
+      if (total is int) "$total ${total == 1 ? "song" : "songs"}",
+      _followers(playlist["followers"]?["total"]),
+    ].where((s) => s.isNotEmpty).join("  ·  "),
+    sections: [
+      ProfileSection(
+        title: "Songs",
+        numbered: true,
+        contextUri: playlistUri,
+        items: songs,
       ),
     ],
   );

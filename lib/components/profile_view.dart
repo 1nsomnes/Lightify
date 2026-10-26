@@ -53,7 +53,7 @@ class ProfileData {
 /// Popup page for something that owns music (an artist or a user): a header
 /// with a badge naming the [kind], then [ProfileSection]s of playable items.
 ///
-/// J/K select, Enter plays, q queues, Shift+A / Shift+P open the selected
+/// J/K select, Enter plays, q queues, Shift+A / Shift+O / Shift+P open the selected
 /// item's album / artist or owner (replacing this popup).
 class ProfileView extends StatefulWidget {
   const ProfileView({
@@ -202,6 +202,8 @@ class _ProfileViewState extends State<ProfileView> {
         }
       case LogicalKeyboardKey.keyA when e.character == "A":
         if (item != null) openAlbumPage(context, item);
+      case LogicalKeyboardKey.keyO when e.character == "O":
+        if (item != null) openCollectionPage(context, item);
       case LogicalKeyboardKey.keyP when e.character == "P":
         if (item != null) openCreatorPage(context, item);
       default:

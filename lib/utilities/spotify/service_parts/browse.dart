@@ -26,6 +26,15 @@ extension Browse on SpotifyService {
     return _userId ??= (await dio.get("me")).data["id"];
   }
 
+  Future<Response> getPlaylist(String id) {
+    return dio.get("playlists/${Uri.encodeComponent(id)}");
+  }
+
+  // a later page of a playlist's songs, from the "next" link of the last one
+  Future<Response> getPage(String url) {
+    return dio.get(url);
+  }
+
   Future<Response> getUser(String id) {
     return dio.get("users/${Uri.encodeComponent(id)}");
   }

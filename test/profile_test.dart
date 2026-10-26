@@ -280,4 +280,52 @@ void main() {
     await tester.pumpAndSettle();
     expect(host.isOpen, isFalse);
   });
+
+  testWidgets("Shift+O opens a playlist's page, or an album like Shift+A", (
+    tester,
+  ) async {
+    await pumpHost(tester);
+    final context = tester.element(find.text("base"));
+
+    openCollectionPage(
+      context,
+      const SearchItem(
+        name: "p",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:playlist:p",
+      ),
+    );
+    await tester.pumpAndSettle();
+    // no network in tests, so the playlist page shows its load error
+    expect(find.textContaining("Couldn't load this playlist"), findsOneWidget);
+
+    openCollectionPage(
+      context,
+      const SearchItem(
+        name: "a",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:album:closer",
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Couldn't load this album"), findsOneWidget);
+
+    // tracks open nothing, even with an album
+    host.close();
+    await tester.pumpAndSettle();
+    openCollectionPage(
+      context,
+      const SearchItem(
+        name: "t",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:track:t",
+        albumUri: "spotify:album:closer",
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(host.isOpen, isFalse);
+  });
 }

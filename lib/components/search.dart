@@ -246,6 +246,9 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyM:
         _toggleMine();
 
+      case LogicalKeyboardKey.keyO when e.character == "O":
+        if (selectedItem != null) openCollectionPage(context, selectedItem);
+
       // jump to the playing song (same as K from the top of the list)
       case LogicalKeyboardKey.keyC when e.character == "C":
         if (widget.nowPlaying != null) {

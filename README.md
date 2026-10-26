@@ -62,6 +62,7 @@ right now.
 | Shift + C | Select the currently playing song |
 | Shift + S | Open settings (J/K select, H/L adjust, R reset) |
 | Shift + A | Open the selected item's album (tracks/albums) |
+| Shift + O | Open the selected playlist or album |
 | Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |
