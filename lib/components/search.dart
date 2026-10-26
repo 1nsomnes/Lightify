@@ -44,6 +44,11 @@ class Search extends StatefulWidget {
 
 enum SearchKind { track, album, playlist }
 
+const _searchBorder = OutlineInputBorder(
+  borderRadius: BorderRadius.all(Radius.circular(999)),
+  borderSide: BorderSide(color: Colors.white24),
+);
+
 class _SearchState extends State<Search> {
   final FocusNode _keyNode = FocusNode();
   final FocusNode _searchNode = FocusNode();
@@ -419,12 +424,20 @@ class _SearchState extends State<Search> {
               _keyNode.requestFocus();
               setState(() => _shown.selected = 0);
             },
+            // matches the filter chips below, but stays gray when focused
+            cursorColor: Colors.white70,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
             decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Type to search…',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-              ),
+              isDense: true,
+              filled: true,
+              fillColor: Color(0x0FFFFFFF),
+              contentPadding: EdgeInsets.symmetric(vertical: 12),
+              prefixIcon: Icon(Icons.search, size: 20),
+              prefixIconColor: Colors.white54,
+              hintText: 'Search…',
+              hintStyle: TextStyle(color: Colors.white38, fontSize: 15),
+              enabledBorder: _searchBorder,
+              focusedBorder: _searchBorder,
             ),
           ),
         ),

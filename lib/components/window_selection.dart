@@ -26,36 +26,30 @@ class WindowSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            for (final MapEntry(key: kind, value: label) in _labels.entries)
-              PillButton(
-                label: label,
-                selected: kinds.contains(kind),
-                onPressed: () => onToggleKind(kind),
-              ),
-          ],
-        ),
-
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
             children: [
-              Checkbox(
-                value: mine,
-                onChanged: (_) => onToggleMine(),
-                activeColor: Colors.purple,
-              ),
-              const SizedBox(width: 8),
-              const Text("Mine"),
+              for (final MapEntry(key: kind, value: label) in _labels.entries)
+                PillButton(
+                  label: label,
+                  selected: kinds.contains(kind),
+                  onPressed: () => onToggleKind(kind),
+                ),
             ],
           ),
-        ),
-      ],
+
+          PillButton(
+            label: "Mine",
+            icon: Icons.favorite,
+            selected: mine,
+            onPressed: onToggleMine,
+          ),
+        ],
+      ),
     );
   }
 }
