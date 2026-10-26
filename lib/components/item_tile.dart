@@ -23,31 +23,46 @@ class ItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(4)),
-        child: icon != null
-            ? Container(
-                width: 48,
-                height: 48,
-                color: const Color(0x261DB954),
-                child: Icon(icon, color: const Color(0xFF1DB954)),
-              )
-            : Image.network(
-                item.imgUrl,
-                width: 48,
-                height: 48,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-              ),
+    // inset so the selection's rounded background (the same as the player's
+    // when it's selected) doesn't touch the edges. The row gets its own
+    // Material: ListTile paints on the nearest one, which in a popup sits
+    // under the panel's background
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          selectedTileColor: const Color(0x14FFFFFF),
+          leading: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
+            child: icon != null
+                ? Container(
+                    width: 48,
+                    height: 48,
+                    color: const Color(0x261DB954),
+                    child: Icon(icon, color: const Color(0xFF1DB954)),
+                  )
+                : Image.network(
+                    item.imgUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.broken_image),
+                  ),
+          ),
+          selected: selected,
+          selectedColor: const Color(0xFF1DB954),
+          titleTextStyle: textTheme.titleMedium,
+          subtitleTextStyle: textTheme.labelSmall,
+          title: Text(item.name),
+          subtitle: Text(item.artist),
+          trailing: showKind ? _kindBadge() : null,
+        ),
       ),
-      selected: selected,
-      selectedColor: const Color(0xFF1DB954),
-      titleTextStyle: textTheme.titleMedium,
-      subtitleTextStyle: textTheme.labelSmall,
-      title: Text(item.name),
-      subtitle: Text(item.artist),
-      trailing: showKind ? _kindBadge() : null,
     );
   }
 
