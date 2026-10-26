@@ -8,12 +8,17 @@ class ItemTile extends StatelessWidget {
     required this.item,
     required this.selected,
     this.icon,
+    this.showKind = false,
   });
 
   final SearchItem item;
   final bool selected;
   // shown instead of the artwork, for rows that aren't a song or album
   final IconData? icon;
+  // a T / A / P badge on the right, for lists that mix kinds
+  final bool showKind;
+
+  static const _kindLetters = {"track": "T", "album": "A", "playlist": "P"};
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +47,20 @@ class ItemTile extends StatelessWidget {
       subtitleTextStyle: textTheme.labelSmall,
       title: Text(item.name),
       subtitle: Text(item.artist),
+      trailing: showKind ? _kindBadge() : null,
+    );
+  }
+
+  Widget? _kindBadge() {
+    final letter = _kindLetters[item.ctxUri.split(":").elementAtOrNull(1)];
+    if (letter == null) return null;
+    return Text(
+      letter,
+      style: TextStyle(
+        color: selected ? const Color(0xFF1DB954) : Colors.white54,
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+      ),
     );
   }
 }

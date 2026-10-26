@@ -11,6 +11,7 @@ import 'package:lightify/pages/queue_page.dart';
 import 'package:lightify/pages/settings_page.dart';
 import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
+import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
@@ -41,13 +42,14 @@ class Search extends StatefulWidget {
   State<Search> createState() => _SearchState();
 }
 
-enum SearchKind { playlist, track, album }
+enum SearchKind { track, album, playlist }
 
 class _SearchState extends State<Search> {
   final FocusNode _keyNode = FocusNode();
   final FocusNode _searchNode = FocusNode();
   final ItemScrollController _scroll = ItemScrollController();
-  SearchKind searchKind = SearchKind.track;
+  // which kinds of results are shown; each one toggles (T / A / P)
+  final Set<SearchKind> kinds = {...SearchKind.values};
   bool mine = false;
 
   final _textController = TextEditingController();
@@ -70,9 +72,12 @@ class _SearchState extends State<Search> {
   final SearchList _myFullPlaylists = SearchList();
   final SearchList _myFullAlbums = SearchList();
 
+  // what's on screen: the enabled kinds of the current source, merged
+  final SearchList _shown = SearchList();
+
   late final SpotifyService spotifyService;
   late final _hold = HoldToScroll(
-    (delta, duration) => _moveSelection(getRelevantList(), delta, duration),
+    (delta, duration) => _moveSelection(_shown, delta, duration),
   );
 
   void loadPersonalCatalog(
@@ -88,6 +93,7 @@ class _SearchState extends State<Search> {
       var data = response.data;
       setState(() {
         parser(data["items"], list.items, savedResult: true);
+        _updateShown();
       });
 
       if (data["next"] == null) break;
@@ -148,7 +154,7 @@ class _SearchState extends State<Search> {
     if (_hold.handle(e)) return KeyEventResult.handled;
     if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
-    var relevantList = getRelevantList();
+    final relevantList = _shown;
 
     switch (lk) {
       case LogicalKeyboardKey.tab:
@@ -191,9 +197,7 @@ class _SearchState extends State<Search> {
             openCreatorPage(context, relevantList.items[relevantList.selected]);
           }
         } else {
-          setState(() {
-            searchKind = SearchKind.playlist;
-          });
+          _toggleKind(SearchKind.playlist);
         }
 
       case LogicalKeyboardKey.keyA:
@@ -203,27 +207,21 @@ class _SearchState extends State<Search> {
             openAlbumPage(context, relevantList.items[relevantList.selected]);
           }
         } else {
-          setState(() {
-            searchKind = SearchKind.album;
-          });
+          _toggleKind(SearchKind.album);
         }
 
       case LogicalKeyboardKey.keyT:
-        setState(() {
-          searchKind = SearchKind.track;
-        });
+        _toggleKind(SearchKind.track);
 
       case LogicalKeyboardKey.keyM:
-        // personal saved stuffe
-        setState(() {
-          mine = !mine;
-        });
+        _toggleMine();
 
       case LogicalKeyboardKey.enter:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          if (mine && searchKind == SearchKind.track) {
-            _playLikedSong(relevantList);
+          final selected = relevantList.items[relevantList.selected];
+          if (mine && _kindOf(selected) == SearchKind.track) {
+            _playLikedSong(selected);
           } else {
             playSelected(relevantList.items[relevantList.selected].ctxUri);
           }
@@ -235,34 +233,75 @@ class _SearchState extends State<Search> {
     return KeyEventResult.handled;
   }
 
-  SearchList getRelevantList() {
-    if (mine) {
-      if (_textController.text.trim().isNotEmpty) {
-        if (searchKind == SearchKind.album) {
-          return _myAlbums;
-        } else if (searchKind == SearchKind.track) {
-          return _myTracks;
-        } else {
-          return _myPlaylists;
-        }
-      } else {
-        if (searchKind == SearchKind.album) {
-          return _myFullAlbums;
-        } else if (searchKind == SearchKind.track) {
-          return _myFullTracks;
-        } else {
-          return _myFullPlaylists;
-        }
-      }
-    } else {
-      if (searchKind == SearchKind.album) {
-        return _albums;
-      } else if (searchKind == SearchKind.track) {
-        return _tracks;
-      } else {
-        return _playlists;
-      }
+  // the per-kind lists results currently come from
+  Map<SearchKind, SearchList> get _sources {
+    if (!mine) {
+      return {
+        SearchKind.track: _tracks,
+        SearchKind.album: _albums,
+        SearchKind.playlist: _playlists,
+      };
     }
+    final searching = _textController.text.trim().isNotEmpty;
+    return {
+      SearchKind.track: searching ? _myTracks : _myFullTracks,
+      SearchKind.album: searching ? _myAlbums : _myFullAlbums,
+      SearchKind.playlist: searching ? _myPlaylists : _myFullPlaylists,
+    };
+  }
+
+  static SearchKind? _kindOf(SearchItem item) =>
+      switch (item.ctxUri.split(":").elementAtOrNull(1)) {
+        "track" => SearchKind.track,
+        "album" => SearchKind.album,
+        "playlist" => SearchKind.playlist,
+        _ => null,
+      };
+
+  // Rebuilds the on-screen list (call inside setState). With [keepSelection]
+  // the same item stays selected when it's still there; otherwise the
+  // selection goes back to the top.
+  void _updateShown({bool keepSelection = true}) {
+    if (!keepSelection && _shown.selected >= 0) _shown.selected = 0;
+    final previous =
+        keepSelection &&
+            _shown.selected >= 0 &&
+            _shown.selected < _shown.items.length
+        ? _shown.items[_shown.selected].ctxUri
+        : null;
+    final sources = _sources;
+    _shown.items = SearchList.merge(
+      [
+        for (final kind in SearchKind.values)
+          if (kinds.contains(kind)) sources[kind]!.items,
+      ],
+      // search results mix by rank; your whole library reads better grouped
+      interleave: !mine || _textController.text.trim().isNotEmpty,
+    );
+    if (_shown.selected < 0) return; // focus is in the search field
+    final index = _shown.items.indexWhere((i) => i.ctxUri == previous);
+    _shown.selected = index >= 0
+        ? index
+        : _shown.selected.clamp(
+            0,
+            _shown.items.isEmpty ? 0 : _shown.items.length - 1,
+          );
+  }
+
+  void _toggleKind(SearchKind kind) {
+    // keep at least one kind on, so the list is never empty by accident
+    if (kinds.contains(kind) && kinds.length == 1) return;
+    setState(() {
+      if (!kinds.remove(kind)) kinds.add(kind);
+      _updateShown();
+    });
+  }
+
+  void _toggleMine() {
+    setState(() {
+      mine = !mine;
+      _updateShown();
+    });
   }
 
   void updateAllLists(Function(SearchList) action) {
@@ -280,13 +319,17 @@ class _SearchState extends State<Search> {
 
   // plays the selected liked song inside "Liked Songs", so the rest of the
   // liked songs (then Spotify's autoplay) follow it
-  Future<void> _playLikedSong(SearchList list) async {
+  Future<void> _playLikedSong(SearchItem song) async {
     widget.setPlaying(true);
+    final tracks = [
+      for (final item in _shown.items)
+        if (_kindOf(item) == SearchKind.track) item.ctxUri,
+    ];
     try {
       await spotifyService.playTrackInContext(
         await spotifyService.likedSongsUri(),
-        [for (final item in list.items) item.ctxUri],
-        list.selected,
+        tracks,
+        tracks.indexOf(song.ctxUri),
         deviceId: spotifyService.getDeviceId,
       );
     } on DioException catch (e) {
@@ -315,6 +358,7 @@ class _SearchState extends State<Search> {
             .toList();
         scopedList.selected = 0;
       }
+      _updateShown(keepSelection: false);
     });
 
     var response = await spotifyService.searchSpotify(query, 30, 0);
@@ -326,6 +370,7 @@ class _SearchState extends State<Search> {
         _albums.items = result.albums;
         _playlists.items = result.playlists;
         _tracks.items = result.tracks;
+        _updateShown();
       });
     }
   }
@@ -336,7 +381,10 @@ class _SearchState extends State<Search> {
     if (query.isNotEmpty) {
       _populateResults(query);
     } else {
-      setState(() => updateAllLists((list) => list.items.clear()));
+      setState(() {
+        updateAllLists((list) => list.items.clear());
+        _updateShown();
+      });
     }
   }
 
@@ -358,7 +406,7 @@ class _SearchState extends State<Search> {
 
   @override
   Widget build(BuildContext context) {
-    final relevantList = getRelevantList();
+    final relevantList = _shown;
     return Column(
       children: [
         Padding(
@@ -369,9 +417,7 @@ class _SearchState extends State<Search> {
             onSubmitted: (val) {
               _flushDebounce();
               _keyNode.requestFocus();
-              setState(() {
-                updateAllLists((list) => list.selected = 0);
-              });
+              setState(() => _shown.selected = 0);
             },
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.search),
@@ -382,7 +428,12 @@ class _SearchState extends State<Search> {
             ),
           ),
         ),
-        WindowSelection(screen: searchKind, mine: mine),
+        WindowSelection(
+          kinds: kinds,
+          mine: mine,
+          onToggleKind: _toggleKind,
+          onToggleMine: _toggleMine,
+        ),
         Expanded(
           child: Focus(
             focusNode: _keyNode,
@@ -396,6 +447,7 @@ class _SearchState extends State<Search> {
                     itemBuilder: (context, i) => ItemTile(
                       item: relevantList.items[i],
                       selected: i == relevantList.selected,
+                      showKind: true,
                     ),
                   ),
           ),

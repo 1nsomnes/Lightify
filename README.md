@@ -52,9 +52,9 @@ right now.
 | S | Change shuffle mode |
 | R | Change repeat mode | 
 | TAB | Navigate to search bar (when already not open) |
-| T | Switch to track search mode |
-| A | Switch to album search mode |
-| P | Switch to playlist search mode |
+| T | Show/hide tracks in the results |
+| A | Show/hide albums in the results |
+| P | Show/hide playlists in the results |
 | M | Switch to "my catalog" | 
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
