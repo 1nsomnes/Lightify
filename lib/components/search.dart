@@ -67,6 +67,11 @@ class _SearchState extends State<Search> {
 
   final _textController = TextEditingController();
   String _lastQuery = "";
+  // the selection and query when Tab moved to the search field, restored on
+  // Enter if the query didn't change
+  int _selectionBeforeSearch = 0;
+  bool _playerBeforeSearch = false;
+  String _queryBeforeSearch = "";
   Timer? _debounce;
 
   // TODO: maybe add loading when searching?
@@ -186,6 +191,9 @@ class _SearchState extends State<Search> {
 
     switch (lk) {
       case LogicalKeyboardKey.tab:
+        _selectionBeforeSearch = relevantList.selected;
+        _playerBeforeSearch = widget.nowPlayingSelected.value;
+        _queryBeforeSearch = _textController.text.trim();
         widget.nowPlayingSelected.value = false;
         setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();
@@ -447,10 +455,28 @@ class _SearchState extends State<Search> {
             focusNode: _searchNode,
             controller: _textController,
             onSubmitted: (val) {
-              _flushDebounce();
+              final unchanged =
+                  _textController.text.trim() == _queryBeforeSearch;
+              if (unchanged) {
+                // the results on screen are still for this query (edits that
+                // ended back where they started don't need a new search)
+                _debounce?.cancel();
+              } else {
+                _flushDebounce();
+              }
               _keyNode.requestFocus();
-              widget.nowPlayingSelected.value = false;
-              setState(() => _shown.selected = 0);
+              final index = unchanged
+                  ? _selectionBeforeSearch.clamp(
+                      0,
+                      _shown.items.isEmpty ? 0 : _shown.items.length - 1,
+                    )
+                  : 0;
+              widget.nowPlayingSelected.value =
+                  unchanged && _playerBeforeSearch;
+              setState(() => _shown.selected = index);
+              if (_shown.items.isNotEmpty && _scroll.isAttached) {
+                _scroll.jumpTo(index: index, alignment: unchanged ? 0.38 : 0);
+              }
             },
             // matches the filter chips below, but stays gray when focused
             cursorColor: Colors.white70,
