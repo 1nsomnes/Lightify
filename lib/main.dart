@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
+import 'package:lightify/utilities/settings.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -35,6 +36,7 @@ void main() async {
 
   await Future.wait([
     hotKeyManager.unregisterAll(),
+    Settings.load(),
     windowManager.ensureInitialized().then(
       (_) => windowManager.setSkipTaskbar(true),
     ),

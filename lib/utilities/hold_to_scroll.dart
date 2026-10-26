@@ -1,14 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:lightify/utilities/settings.dart';
 
 /// How long J/K (or the arrow keys) must be held before the selection starts
-/// moving on its own.
-const holdScrollDelay = Duration(milliseconds: 300);
+/// moving on its own (adjustable on the settings page).
+Duration get holdScrollDelay =>
+    Duration(milliseconds: Settings.holdScrollDelay.value);
 
 /// How often the selection moves one item while the key stays held; smaller
-/// is faster.
-const holdScrollInterval = Duration(milliseconds: 150);
+/// is faster (adjustable on the settings page).
+Duration get holdScrollInterval =>
+    Duration(milliseconds: Settings.holdScrollInterval.value);
 
 /// Scroll animation for a single press.
 const tapScrollDuration = Duration(milliseconds: 200);

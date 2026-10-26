@@ -8,6 +8,7 @@ import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/window_selection.dart';
 import 'package:lightify/pages/profile_pages.dart';
 import 'package:lightify/pages/queue_page.dart';
+import 'package:lightify/pages/settings_page.dart';
 import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
@@ -155,7 +156,11 @@ class _SearchState extends State<Search> {
         _searchNode.requestFocus();
 
       case LogicalKeyboardKey.keyS:
-        widget.toggleShuffle();
+        if (e.character == "S") {
+          PopupHost.of(context).show(const SettingsPage());
+        } else {
+          widget.toggleShuffle();
+        }
 
       case LogicalKeyboardKey.keyR:
         widget.toggleRepeat();
