@@ -59,6 +59,7 @@ right now.
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
 | Shift + Q | Open the queue |
+| Shift + C | Select the currently playing song |
 | Shift + S | Open settings (J/K select, H/L adjust, R reset) |
 | Shift + A | Open the selected item's album (tracks/albums) |
 | Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |

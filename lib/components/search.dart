@@ -246,6 +246,13 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyM:
         _toggleMine();
 
+      // jump to the playing song (same as K from the top of the list)
+      case LogicalKeyboardKey.keyC when e.character == "C":
+        if (widget.nowPlaying != null) {
+          widget.nowPlayingSelected.value = true;
+          setState(() {});
+        }
+
       // the playing song is already playing, so Enter leaves it alone
       case LogicalKeyboardKey.enter when !widget.nowPlayingSelected.value:
         if (relevantList.selected >= 0 &&
