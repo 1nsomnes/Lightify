@@ -18,12 +18,21 @@ class ProfileSection {
     required this.items,
     this.numbered = false,
     this.contextUri,
+    this.playsFollowing = false,
+    this.icon,
   });
 
+  // sections with an empty title are shown without a heading
   final String title;
   final List<SearchItem> items;
   final bool numbered;
-  // when set, Enter plays this album/playlist starting at the selected track
+  // when set, Enter plays the selected song and then the ones after it in
+  // this section (used when there's no Spotify context to play it in)
+  final bool playsFollowing;
+  // shown on every row instead of artwork
+  final IconData? icon;
+  // when set, Enter plays this album/playlist/artist starting at the selected
+  // track and carries on through the rest of it
   final String? contextUri;
 }
 
@@ -75,10 +84,12 @@ class _TitleRow extends _Row {
 }
 
 class _ItemRow extends _Row {
-  _ItemRow(this.item, this.number, this.contextUri);
-  final SearchItem item;
-  final int? number;
-  final String? contextUri;
+  _ItemRow(this.section, this.index);
+  final ProfileSection section;
+  final int index;
+
+  SearchItem get item => section.items[index];
+  int? get number => section.numbered ? index + 1 : null;
 }
 
 class _ProfileViewState extends State<ProfileView> {
@@ -114,16 +125,10 @@ class _ProfileViewState extends State<ProfileView> {
       final itemRows = <int>[];
       for (final section in data.sections) {
         if (section.items.isEmpty) continue;
-        rows.add(_TitleRow(section.title));
+        if (section.title.isNotEmpty) rows.add(_TitleRow(section.title));
         for (int i = 0; i < section.items.length; i++) {
           itemRows.add(rows.length);
-          rows.add(
-            _ItemRow(
-              section.items[i],
-              section.numbered ? i + 1 : null,
-              section.contextUri,
-            ),
-          );
+          rows.add(_ItemRow(section, i));
         }
       }
       setState(() {
@@ -166,11 +171,20 @@ class _ProfileViewState extends State<ProfileView> {
     switch (e.logicalKey) {
       case LogicalKeyboardKey.enter:
         if (row == null) break;
-        final contextUri = row.contextUri;
+        final section = row.section;
+        final contextUri = section.contextUri;
+        final tracks = [for (final item in section.items) item.ctxUri];
         if (contextUri != null) {
-          spotifyService.playInContext(
+          spotifyService.playTrackInContext(
             contextUri,
-            row.item.ctxUri,
+            tracks,
+            row.index,
+            deviceId: spotifyService.getDeviceId,
+          );
+        } else if (section.playsFollowing) {
+          spotifyService.playTracksFrom(
+            tracks,
+            row.index,
             deviceId: spotifyService.getDeviceId,
           );
         } else {
@@ -236,7 +250,7 @@ class _ProfileViewState extends State<ProfileView> {
               ),
             ),
           ),
-          _ItemRow(:final item, :final number, contextUri: _) => Row(
+          _ItemRow(:final item, :final number) => Row(
             children: [
               if (number != null)
                 SizedBox(
@@ -252,7 +266,11 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                 ),
               Expanded(
-                child: ItemTile(item: item, selected: i == selectedRow),
+                child: ItemTile(
+                  item: item,
+                  selected: i == selectedRow,
+                  icon: (_rows[i] as _ItemRow).section.icon,
+                ),
               ),
             ],
           ),

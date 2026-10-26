@@ -222,7 +222,11 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.enter:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          playSelected(relevantList.items[relevantList.selected].ctxUri);
+          if (mine && searchKind == SearchKind.track) {
+            _playLikedSong(relevantList);
+          } else {
+            playSelected(relevantList.items[relevantList.selected].ctxUri);
+          }
         }
 
       default:
@@ -271,6 +275,22 @@ class _SearchState extends State<Search> {
     if (ctxUri != null) {
       spotifyService.playUri(ctxUri, deviceId: spotifyService.getDeviceId);
       widget.setPlaying(true);
+    }
+  }
+
+  // plays the selected liked song inside "Liked Songs", so the rest of the
+  // liked songs (then Spotify's autoplay) follow it
+  Future<void> _playLikedSong(SearchList list) async {
+    widget.setPlaying(true);
+    try {
+      await spotifyService.playTrackInContext(
+        await spotifyService.likedSongsUri(),
+        [for (final item in list.items) item.ctxUri],
+        list.selected,
+        deviceId: spotifyService.getDeviceId,
+      );
+    } on DioException catch (e) {
+      debugPrint("couldn't look up the liked songs: $e");
     }
   }
 

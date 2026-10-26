@@ -65,17 +65,34 @@ Future<ProfileData> _loadArtist(String id) async {
   final List<dynamic> albums = results[2]?.data["items"] ?? [];
 
   final genres = (artist["genres"] as List?)?.take(2).join(", ") ?? "";
+  final String name = artist["name"] ?? "";
   return ProfileData(
-    name: artist["name"] ?? "",
+    name: name,
     imageUrl: _largestImageUrl(artist["images"]),
     details: [
       _followers(artist["followers"]?["total"]),
       genres,
     ].where((s) => s.isNotEmpty).join("  ·  "),
     sections: [
+      // plays the artist itself as a context (Enter goes through playUri),
+      // which Spotify continues with autoplay
+      ProfileSection(
+        title: "",
+        icon: Icons.radio,
+        items: [
+          SearchItem(
+            name: "Artist radio",
+            artist: "Songs by $name, then similar music",
+            imgUrl: "",
+            ctxUri: artist["uri"] ?? "spotify:artist:$id",
+          ),
+        ],
+      ),
       ProfileSection(
         title: "Popular",
         numbered: true,
+        // a song plays with the rest of the list after it, then autoplay
+        playsFollowing: true,
         items: [
           for (final track in tracks.take(10))
             SearchItem(

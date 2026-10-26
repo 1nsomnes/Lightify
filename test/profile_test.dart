@@ -134,6 +134,50 @@ void main() {
     expect(find.text("2"), findsOneWidget);
   });
 
+  testWidgets("an untitled icon section (artist radio) comes first", (
+    tester,
+  ) async {
+    await pumpHost(tester);
+    host.show(
+      ProfileView(
+        kind: "Artist",
+        icon: Icons.verified,
+        load: () async => ProfileData(
+          name: "Joy Division",
+          imageUrl: "",
+          details: "",
+          sections: [
+            ProfileSection(
+              title: "",
+              icon: Icons.radio,
+              items: [item("Artist radio")],
+            ),
+            ProfileSection(title: "Popular", items: [item("a")]),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.radio), findsOneWidget);
+    expect(
+      tester
+          .widget<ListTile>(
+            find.ancestor(
+              of: find.text("Artist radio"),
+              matching: find.byType(ListTile),
+            ),
+          )
+          .selected,
+      isTrue,
+    );
+    // no heading row for the untitled section, so radio sits above Popular
+    expect(
+      tester.getTopLeft(find.text("Artist radio")).dy,
+      lessThan(tester.getTopLeft(find.text("Popular")).dy),
+    );
+  });
+
   testWidgets("J moves the selection across sections", (tester) async {
     await pumpHost(tester);
     host.show(artistView());

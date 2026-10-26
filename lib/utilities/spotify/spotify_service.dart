@@ -86,6 +86,7 @@ class SpotifyService {
   String _refreshToken = "";
   String _clientId = "";
   String _deviceId = "";
+  String? _userId;
   Future<bool>? _refreshInFlight;
 
   String get getToken => _token;

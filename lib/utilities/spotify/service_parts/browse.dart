@@ -21,6 +21,11 @@ extension Browse on SpotifyService {
     return dio.get("albums/${Uri.encodeComponent(id)}");
   }
 
+  // the signed-in user's id, fetched once
+  Future<String> getCurrentUserId() async {
+    return _userId ??= (await dio.get("me")).data["id"];
+  }
+
   Future<Response> getUser(String id) {
     return dio.get("users/${Uri.encodeComponent(id)}");
   }

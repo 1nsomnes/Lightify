@@ -103,10 +103,11 @@ extension Player on SpotifyService {
         : playPlaylistOrAlbums(uri, deviceId: deviceId);
   }
 
-  // Starts [contextUri] (an album or playlist) at [trackUri]
+  // Starts [contextUri] (an album, playlist, artist...) at [trackUri], or at
+  // its beginning when [trackUri] is null
   Future<Response> playInContext(
     String contextUri,
-    String trackUri, {
+    String? trackUri, {
     String deviceId = "",
   }) {
     return dio.put(
@@ -114,10 +115,50 @@ extension Player on SpotifyService {
       queryParameters: {if (deviceId.isNotEmpty) "device_id": deviceId},
       data: {
         "context_uri": contextUri,
-        "offset": {"uri": trackUri},
+        if (trackUri != null) "offset": {"uri": trackUri},
       },
     );
   }
+
+  // Plays tracks[index] as part of [contextUri] (an album, playlist or the
+  // liked songs), the way Spotify does: the rest of the context plays next,
+  // then Spotify's autoplay takes over. If Spotify refuses, the songs from
+  // [index] on are played as a list instead.
+  Future<void> playTrackInContext(
+    String contextUri,
+    List<String> tracks,
+    int index, {
+    String deviceId = "",
+  }) async {
+    try {
+      await playInContext(contextUri, tracks[index], deviceId: deviceId);
+    } on DioException catch (e) {
+      debugPrint("playing in $contextUri failed: $e");
+      await playTracksFrom(tracks, index, deviceId: deviceId);
+    }
+  }
+
+  // Plays tracks[index] followed by the rest of [tracks]; Spotify's autoplay
+  // continues after the last one
+  Future<void> playTracksFrom(
+    List<String> tracks,
+    int index, {
+    String deviceId = "",
+  }) async {
+    try {
+      // the request limits how many songs can be sent
+      await playTracks(
+        tracks.skip(index).take(100).toList(),
+        deviceId: deviceId,
+      );
+    } on DioException catch (e) {
+      debugPrint("playing ${tracks[index]} failed: $e");
+    }
+  }
+
+  // The "Liked Songs" playlist
+  Future<String> likedSongsUri() async =>
+      "spotify:user:${await getCurrentUserId()}:collection";
 
   // Spotify only queues single tracks/episodes, not albums or playlists
   Future<void> queueIfPlayable(String uri, {String deviceId = ""}) async {
