@@ -9,6 +9,7 @@ import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
+import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:lightify/utilities/window_channel.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -40,6 +41,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _playbackChangeSubscription.cancel();
+    _nowPlayingSelected.dispose();
     _controller.runJavaScript('window.stop();');
     _controller.removeJavaScriptChannel("FlutterHost");
     _controller.loadRequest(Uri.parse("about:blank"));
@@ -118,12 +120,20 @@ class _HomePageState extends State<HomePage> {
     final String newSong = json["name"];
     final url = _artworkUrl(json["album"]?["images"]);
     final newImgurl = url.isEmpty ? "null" : url;
-    if (newArtist == artist && newSong == song && newImgurl == imgurl) return;
+    final item = ProcessResponse.queueItem(json);
+    if (newArtist == artist &&
+        newSong == song &&
+        newImgurl == imgurl &&
+        item.ctxUri == _nowPlayingItem?.ctxUri) {
+      return;
+    }
     setState(() {
       artist = newArtist;
       song = newSong;
       imgurl = newImgurl;
+      _nowPlayingItem = item.ctxUri.isEmpty ? null : item;
     });
+    if (_nowPlayingItem == null) _nowPlayingSelected.value = false;
   }
 
   // the player's state includes where the song is; NowPlaying advances the bar
@@ -221,6 +231,9 @@ class _HomePageState extends State<HomePage> {
   String song = "Nothing playing";
   String artist = "Pick something below";
   String imgurl = "null";
+  // the playing song as a list item, so it can be selected (album / artist)
+  SearchItem? _nowPlayingItem;
+  final _nowPlayingSelected = ValueNotifier(false);
   int _positionMs = 0;
   int _durationMs = 0;
   DateTime _positionAt = DateTime.now();
@@ -241,20 +254,24 @@ class _HomePageState extends State<HomePage> {
               size: Size.zero,
               child: WebViewWidget(controller: _controller),
             ),
-            NowPlaying(
-              song: song,
-              artist: artist,
-              imageUrl: imgurl == "null" ? "" : imgurl,
-              state: playbackState,
-              positionMs: _positionMs,
-              durationMs: _durationMs,
-              positionAt: _positionAt,
-              onTogglePlay: _togglePlay,
-              onNext: _next,
-              onPrevious: _prev,
-              onShuffle: _toggleShuffle,
-              onRepeat: _switchRepeatMode,
-              onSeek: _seek,
+            ValueListenableBuilder(
+              valueListenable: _nowPlayingSelected,
+              builder: (context, selected, _) => NowPlaying(
+                selected: selected,
+                song: song,
+                artist: artist,
+                imageUrl: imgurl == "null" ? "" : imgurl,
+                state: playbackState,
+                positionMs: _positionMs,
+                durationMs: _durationMs,
+                positionAt: _positionAt,
+                onTogglePlay: _togglePlay,
+                onNext: _next,
+                onPrevious: _prev,
+                onShuffle: _toggleShuffle,
+                onRepeat: _switchRepeatMode,
+                onSeek: _seek,
+              ),
             ),
             // fill only the space left in the window so the list scrolls
             // instead of overflowing
@@ -267,6 +284,8 @@ class _HomePageState extends State<HomePage> {
                 updateToken: _updateToken,
                 toggleRepeat: _switchRepeatMode,
                 toggleShuffle: _toggleShuffle,
+                nowPlaying: _nowPlayingItem,
+                nowPlayingSelected: _nowPlayingSelected,
               ),
             ),
           ],

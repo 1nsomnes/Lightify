@@ -21,6 +21,7 @@ class NowPlaying extends StatelessWidget {
     required this.onShuffle,
     required this.onRepeat,
     required this.onSeek,
+    this.selected = false,
   });
 
   final String song;
@@ -40,13 +41,21 @@ class NowPlaying extends StatelessWidget {
   final VoidCallback onShuffle;
   final VoidCallback onRepeat;
   final void Function(int positionMs) onSeek;
+  // highlighted like a selected list row (K from the top of the results)
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     final shuffleOn = state.shuffleState == ShuffleState.shuffleOn;
     final repeat = state.repeatState;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: selected ? const Color(0x14FFFFFF) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
           _Artwork(url: imageUrl),
@@ -65,8 +74,11 @@ class NowPlaying extends StatelessWidget {
                             song,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              // the same green as a selected list row
+                              color: selected
+                                  ? const Color(0xFF1DB954)
+                                  : Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),

@@ -27,6 +27,8 @@ class Search extends StatefulWidget {
     required this.updateToken,
     required this.toggleRepeat,
     required this.toggleShuffle,
+    required this.nowPlaying,
+    required this.nowPlayingSelected,
   });
 
   final Function skip;
@@ -37,6 +39,12 @@ class Search extends StatefulWidget {
   final Function toggleShuffle;
 
   final Function setPlaying;
+
+  // the song in the player above the list; K from the top of the list
+  // selects it (null when nothing is playing)
+  final SearchItem? nowPlaying;
+  // true while that song is the selection; the player highlights itself
+  final ValueNotifier<bool> nowPlayingSelected;
 
   @override
   State<Search> createState() => _SearchState();
@@ -144,6 +152,20 @@ class _SearchState extends State<Search> {
   }
 
   void _moveSelection(SearchList list, int delta, Duration scrollDuration) {
+    final onPlayer = widget.nowPlayingSelected;
+    if (onPlayer.value) {
+      // down from the player goes back to the top of the list
+      if (delta > 0 && list.items.isNotEmpty) {
+        onPlayer.value = false;
+        setState(() => list.selected = 0);
+      }
+      return;
+    }
+    if (delta < 0 && list.selected <= 0 && widget.nowPlaying != null) {
+      onPlayer.value = true;
+      setState(() {});
+      return;
+    }
     if (list.items.isEmpty) return;
     setState(() {
       list.selected = (list.selected + delta).clamp(0, list.items.length - 1);
@@ -160,9 +182,11 @@ class _SearchState extends State<Search> {
     if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
     final relevantList = _shown;
+    final selectedItem = _selectedItem;
 
     switch (lk) {
       case LogicalKeyboardKey.tab:
+        widget.nowPlayingSelected.value = false;
         setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();
 
@@ -181,10 +205,9 @@ class _SearchState extends State<Search> {
         // think shift is held from the Meta+Shift+S that opened the window
         if (e.character == "Q") {
           PopupHost.of(context).show(const QueuePage());
-        } else if (relevantList.selected >= 0 &&
-            relevantList.selected < relevantList.items.length) {
+        } else if (selectedItem != null) {
           spotifyService.queueIfPlayable(
-            relevantList.items[relevantList.selected].ctxUri,
+            selectedItem.ctxUri,
             deviceId: spotifyService.getDeviceId,
           );
         }
@@ -197,20 +220,14 @@ class _SearchState extends State<Search> {
 
       case LogicalKeyboardKey.keyP:
         if (e.character == "P") {
-          if (relevantList.selected >= 0 &&
-              relevantList.selected < relevantList.items.length) {
-            openCreatorPage(context, relevantList.items[relevantList.selected]);
-          }
+          if (selectedItem != null) openCreatorPage(context, selectedItem);
         } else {
           _toggleKind(SearchKind.playlist);
         }
 
       case LogicalKeyboardKey.keyA:
         if (e.character == "A") {
-          if (relevantList.selected >= 0 &&
-              relevantList.selected < relevantList.items.length) {
-            openAlbumPage(context, relevantList.items[relevantList.selected]);
-          }
+          if (selectedItem != null) openAlbumPage(context, selectedItem);
         } else {
           _toggleKind(SearchKind.album);
         }
@@ -221,7 +238,8 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyM:
         _toggleMine();
 
-      case LogicalKeyboardKey.enter:
+      // the playing song is already playing, so Enter leaves it alone
+      case LogicalKeyboardKey.enter when !widget.nowPlayingSelected.value:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
           final selected = relevantList.items[relevantList.selected];
@@ -236,6 +254,15 @@ class _SearchState extends State<Search> {
         return KeyEventResult.ignored;
     }
     return KeyEventResult.handled;
+  }
+
+  // the playing song when it's selected, otherwise the list's selection
+  SearchItem? get _selectedItem {
+    if (widget.nowPlayingSelected.value) return widget.nowPlaying;
+    final list = _shown;
+    return list.selected >= 0 && list.selected < list.items.length
+        ? list.items[list.selected]
+        : null;
   }
 
   // the per-kind lists results currently come from
@@ -422,6 +449,7 @@ class _SearchState extends State<Search> {
             onSubmitted: (val) {
               _flushDebounce();
               _keyNode.requestFocus();
+              widget.nowPlayingSelected.value = false;
               setState(() => _shown.selected = 0);
             },
             // matches the filter chips below, but stays gray when focused
@@ -459,7 +487,9 @@ class _SearchState extends State<Search> {
                     itemCount: relevantList.items.length,
                     itemBuilder: (context, i) => ItemTile(
                       item: relevantList.items[i],
-                      selected: i == relevantList.selected,
+                      selected:
+                          i == relevantList.selected &&
+                          !widget.nowPlayingSelected.value,
                       showKind: true,
                     ),
                   ),
