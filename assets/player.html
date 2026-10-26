@@ -46,7 +46,7 @@
       });
 
       player.addListener('authentication_error', ({message}) => {
-        console.log("Authentication Failed");
+        console.log("Authentication Failed: " + message);
         return_object = {
           func: "authenticationFailed"
         };
@@ -54,7 +54,7 @@
       });
 
       player.addListener('account_error', ({message}) => {
-        console.error(message);
+        console.error("Account error: " + message);
       });
 
       player.addListener('player_state_changed', ({

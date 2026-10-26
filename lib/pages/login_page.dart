@@ -62,13 +62,18 @@ class LoginPage extends StatelessWidget {
               var promise = loopbackAuthorize(authorizeUrl: url);
               var result = await promise;
 
-              String code = result.toString().split("code=").last;
+              final code = result.queryParameters["code"];
+              if (code == null) {
+                debugPrint("Spotify authorization failed: ${result.queryParameters["error"]}");
+                return;
+              }
 
               Map<String, dynamic> json = await spotifyService.pkceRequestToken(
                 code,
                 codeVerifier,
               );
-              String token = json["access_token"];
+              final String? token = json["access_token"];
+              if (token == null) return;
 
               if (context.mounted) {
                 final authProvider = Provider.of<AuthProvider>(

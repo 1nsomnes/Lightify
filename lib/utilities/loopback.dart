@@ -1,4 +1,5 @@
 import "dart:io";
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<Uri> loopbackAuthorize({
@@ -13,7 +14,20 @@ Future<Uri> loopbackAuthorize({
     throw Exception('Could not launch $authorizeUrl');
   }
   
-  final request = await server.first;
+  // browsers can hit the server with unrelated requests (favicon, prefetch),
+  // so wait for the actual OAuth redirect
+  late final HttpRequest request;
+  await for (final req in server) {
+    final params = req.uri.queryParameters;
+    if (params.containsKey("code") || params.containsKey("error")) {
+      request = req;
+      break;
+    }
+    debugPrint("loopback ignoring request to ${req.uri.path}");
+    req.response
+      ..statusCode = 404
+      ..close();
+  }
   
   request.response
     ..statusCode = 200

@@ -48,6 +48,9 @@ class SpotifyService {
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
           var opts = error.requestOptions;
+          debugPrint(
+            "Spotify API error ${error.response?.statusCode} on ${opts.path}: ${error.response?.data}",
+          );
           if (error.response?.statusCode == 401 &&
               opts.extra["__retry"] != true &&
               await attemptRefresh()) {
@@ -66,6 +69,7 @@ class SpotifyService {
   String _refreshToken = "";
   String _clientId = "";
   String _deviceId = "";
+  Future<bool>? _refreshInFlight;
 
   String get getToken => _token;
   String get getRefreshToken => _refreshToken;

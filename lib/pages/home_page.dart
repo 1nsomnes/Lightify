@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/components/circle_buttons.dart';
 import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
+import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -107,7 +108,8 @@ class _HomePageState extends State<HomePage> {
       //TODO: investigate better error handling
       artist = json["artists"][0]["name"];
       song = json["name"];
-      imgurl = json["album"]["images"][2]["url"];
+      final url = ProcessResponse.smallestImageUrl(json["album"]?["images"]);
+      imgurl = url.isEmpty ? "null" : url;
     });
     return;
   }

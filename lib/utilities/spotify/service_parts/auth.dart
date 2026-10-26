@@ -39,9 +39,17 @@ extension Auth on SpotifyService {
     return AuthError.unknown;
   }
 
-  Future<bool> attemptRefresh() async {
-    final refreshResponse = await requestTokenFromRefresh();
+  // Spotify rotates refresh tokens, so concurrent refreshes with the same
+  // token would invalidate each other. Share a single in-flight refresh.
+  Future<bool> attemptRefresh() {
+    return _refreshInFlight ??= _doRefresh().whenComplete(() {
+      _refreshInFlight = null;
+    });
+  }
+
+  Future<bool> _doRefresh() async {
     debugPrint("Attempting to refresh tokens");
+    final refreshResponse = await requestTokenFromRefresh();
 
     if (refreshResponse == null) {
       _authProvider.setIsAuthenticated(false);
@@ -50,15 +58,15 @@ extension Auth on SpotifyService {
     }
     final String newToken = refreshResponse["access_token"];
     await _storage.write(key: "token", value: newToken);
-    _authProvider.setIsAuthenticated(true);
     setToken(newToken);
-    if (updatePlayerToken != null) updatePlayerToken!(_token);
 
     if (refreshResponse.containsKey("refresh_token")) {
-      String newRefreshToken = refreshResponse["refresh_token"];
-      await _storage.write(key: "refreshToken", value: _refreshToken);
-      _refreshToken = newRefreshToken;
+      _refreshToken = refreshResponse["refresh_token"];
+      await _storage.write(key: "refresh_token", value: _refreshToken);
     }
+
+    _authProvider.setIsAuthenticated(true);
+    if (updatePlayerToken != null) updatePlayerToken!(_token);
 
     return true;
   }
@@ -82,7 +90,7 @@ extension Auth on SpotifyService {
       final Map<String, dynamic> json = jsonDecode(response.body);
       return json;
     }
-    debugPrint("failed refresh");
+    debugPrint("failed refresh: ${response.statusCode} ${response.body}");
 
     return null;
   }
@@ -110,6 +118,7 @@ extension Auth on SpotifyService {
       return json;
     }
 
+    debugPrint("token exchange failed: ${response.statusCode} ${response.body}");
     return {"Error": "Bad response"};
   }
 }
