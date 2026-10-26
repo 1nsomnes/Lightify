@@ -157,7 +157,7 @@ class PopupHostState extends State<PopupHost>
             end: Offset.zero,
           ).animate(entry.animation),
           child: Padding(
-            padding: const EdgeInsets.only(top: 40),
+            padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
             child: DecoratedBox(
               decoration: const BoxDecoration(
                 color: Color(0xEB111215),
