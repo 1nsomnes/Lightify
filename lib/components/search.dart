@@ -3,9 +3,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lightify/components/item_tile.dart';
+import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/window_selection.dart';
+import 'package:lightify/pages/queue_page.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
-import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
@@ -162,11 +164,13 @@ class _SearchState extends State<Search> {
         widget.toggleRepeat();
 
       case LogicalKeyboardKey.keyQ:
-        if (relevantList.selected >= 0 &&
+        // read shift from this event: the global keyboard state can still
+        // think shift is held from the Meta+Shift+S that opened the window
+        if (e.character == "Q") {
+          PopupHost.of(context).show(const QueuePage());
+        } else if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          spotifyService.queue(
-            relevantList.items[relevantList.selected].ctxUri,
-          );
+          _queueItem(relevantList.items[relevantList.selected].ctxUri);
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -206,6 +210,19 @@ class _SearchState extends State<Search> {
         return KeyEventResult.ignored;
     }
     return KeyEventResult.handled;
+  }
+
+  void _queueItem(String uri) {
+    // Spotify only queues single tracks/episodes, not albums or playlists
+    final kind = uri.split(":").elementAtOrNull(1);
+    if (kind != "track" && kind != "episode") {
+      debugPrint("can't queue a $kind, only tracks and episodes");
+      return;
+    }
+    spotifyService.queue(uri, deviceId: widget.deviceId).catchError((e) {
+      debugPrint("queueing $uri failed: $e");
+      return Response(requestOptions: RequestOptions());
+    });
   }
 
   SearchList getRelevantList() {
@@ -320,7 +337,6 @@ class _SearchState extends State<Search> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final relevantList = getRelevantList();
     return Column(
       children: [
@@ -356,30 +372,10 @@ class _SearchState extends State<Search> {
                     physics: const ClampingScrollPhysics(),
                     itemScrollController: _scroll,
                     itemCount: relevantList.items.length,
-                    itemBuilder: (context, i) {
-                      SearchItem info = relevantList.items[i];
-                      return ListTile(
-                        leading: ClipRRect(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(4),
-                          ),
-                          child: Image.network(
-                            info.imgUrl,
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.broken_image),
-                          ),
-                        ),
-                        selected: i == relevantList.selected,
-                        selectedColor: const Color(0xFF1DB954),
-                        titleTextStyle: textTheme.titleMedium,
-                        subtitleTextStyle: textTheme.labelSmall,
-                        title: Text(info.name),
-                        subtitle: Text(info.artist),
-                      );
-                    },
+                    itemBuilder: (context, i) => ItemTile(
+                      item: relevantList.items[i],
+                      selected: i == relevantList.selected,
+                    ),
                   ),
           ),
         ),

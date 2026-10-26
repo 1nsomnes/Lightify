@@ -58,6 +58,8 @@ right now.
 | M | Switch to "my catalog" | 
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
+| Shift + Q | Open/close the queue |
+| B | Close the current pop up page |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |
 | Ctrl + R | Restart |

@@ -110,6 +110,10 @@ extension Player on SpotifyService {
     );
   }
 
+  Future<Response> getQueue() {
+    return dio.get("me/player/queue");
+  }
+
   Future<Response> queue(String uri, {String deviceId = ""}) {
     return dio.post(
       "me/player/queue",

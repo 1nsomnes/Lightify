@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/components/circle_buttons.dart';
+import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/search.dart';
 import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
@@ -51,7 +52,9 @@ class _HomePageState extends State<HomePage> {
 
     spotifyService = GetIt.instance.get<SpotifyService>();
     spotifyService.updatePlayerToken = _updateToken;
-    _playbackChangeSubscription = spotifyService.onPlaybackStateChanged.listen((state) {
+    _playbackChangeSubscription = spotifyService.onPlaybackStateChanged.listen((
+      state,
+    ) {
       if (state.playing == playbackState.playing &&
           state.shuffleState == playbackState.shuffleState &&
           state.repeatState == playbackState.repeatState) {
@@ -134,7 +137,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     //WARNING: this causes some lag between the pause and play button, should be smaller than the remote lag
-    //TODO: temporary fix to token expiring? 
+    //TODO: temporary fix to token expiring?
     spotifyService.getPlaybackState(notifyListeners: false).then((_) {
       _controller.runJavaScript("togglePlayback();");
     });
@@ -201,98 +204,101 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final hasImage = imgurl != "null";
-    return Center(
-      child: Column(
-        children: [
-          SizedBox.fromSize(
-            size: Size.zero,
-            child: WebViewWidget(controller: _controller),
-          ),
-          Row(
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                color: hasImage ? null : Colors.blue,
-                decoration: hasImage
-                    ? BoxDecoration(
-                        image: DecorationImage(image: NetworkImage(imgurl)),
-                      )
-                    : null,
-                margin: const EdgeInsets.all(20),
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(song, style: const TextStyle(fontSize: 16)),
-                    Text(artist, style: const TextStyle(fontSize: 12)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        buildCircleButton(
-                          icon:
-                              playbackState.shuffleState ==
-                                  ShuffleState.shuffleOff
-                              ? Icons.shuffle
-                              : Icons.shuffle_on_rounded,
-                          onPressed: _toggleShuffle,
-                          size: 40,
-                          backgroundColor: _buttonColor,
-                        ),
-                        buildCircleButton(
-                          icon: Icons.skip_previous,
-                          onPressed: _prev,
-                          size: 40,
-                          backgroundColor: _buttonColor,
-                        ),
-                        buildCircleButton(
-                          icon: playbackState.playing
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                          onPressed: _togglePlay,
-                          size: 40,
-                          backgroundColor: Colors.blue,
-                        ),
-                        buildCircleButton(
-                          icon: Icons.skip_next,
-                          onPressed: _next,
-                          size: 40,
-                          backgroundColor: _buttonColor,
-                        ),
-                        buildCircleButton(
-                          icon:
-                              playbackState.repeatState == RepeatState.repeatOff
-                              ? Icons.repeat
-                              : playbackState.repeatState ==
-                                    RepeatState.repeatOne
-                              ? Icons.repeat_one
-                              : Icons.repeat_on,
-                          onPressed: _switchRepeatMode,
-                          size: 40,
-                          backgroundColor: _buttonColor,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // fill only the space left in the window so the list scrolls
-          // instead of overflowing
-          Expanded(
-            child: Search(
-              deviceId: deviceId,
-              pause: _togglePlay,
-              prev: _prev,
-              skip: _next,
-              setPlaying: _setPlaying,
-              updateToken: _updateToken,
-              toggleRepeat: _switchRepeatMode,
-              toggleShuffle: _toggleShuffle,
+    return PopupHost(
+      child: Center(
+        child: Column(
+          children: [
+            SizedBox.fromSize(
+              size: Size.zero,
+              child: WebViewWidget(controller: _controller),
             ),
-          ),
-        ],
+            Row(
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  color: hasImage ? null : Colors.blue,
+                  decoration: hasImage
+                      ? BoxDecoration(
+                          image: DecorationImage(image: NetworkImage(imgurl)),
+                        )
+                      : null,
+                  margin: const EdgeInsets.all(20),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(song, style: const TextStyle(fontSize: 16)),
+                      Text(artist, style: const TextStyle(fontSize: 12)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          buildCircleButton(
+                            icon:
+                                playbackState.shuffleState ==
+                                    ShuffleState.shuffleOff
+                                ? Icons.shuffle
+                                : Icons.shuffle_on_rounded,
+                            onPressed: _toggleShuffle,
+                            size: 40,
+                            backgroundColor: _buttonColor,
+                          ),
+                          buildCircleButton(
+                            icon: Icons.skip_previous,
+                            onPressed: _prev,
+                            size: 40,
+                            backgroundColor: _buttonColor,
+                          ),
+                          buildCircleButton(
+                            icon: playbackState.playing
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            onPressed: _togglePlay,
+                            size: 40,
+                            backgroundColor: Colors.blue,
+                          ),
+                          buildCircleButton(
+                            icon: Icons.skip_next,
+                            onPressed: _next,
+                            size: 40,
+                            backgroundColor: _buttonColor,
+                          ),
+                          buildCircleButton(
+                            icon:
+                                playbackState.repeatState ==
+                                    RepeatState.repeatOff
+                                ? Icons.repeat
+                                : playbackState.repeatState ==
+                                      RepeatState.repeatOne
+                                ? Icons.repeat_one
+                                : Icons.repeat_on,
+                            onPressed: _switchRepeatMode,
+                            size: 40,
+                            backgroundColor: _buttonColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // fill only the space left in the window so the list scrolls
+            // instead of overflowing
+            Expanded(
+              child: Search(
+                deviceId: deviceId,
+                pause: _togglePlay,
+                prev: _prev,
+                skip: _next,
+                setPlaying: _setPlaying,
+                updateToken: _updateToken,
+                toggleRepeat: _switchRepeatMode,
+                toggleShuffle: _toggleShuffle,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -44,6 +44,22 @@ class ProcessResponse {
     }
   }
 
+  // Queue entries are tracks or podcast episodes; episodes have a show
+  // instead of artists and their own images instead of an album
+  static SearchItem queueItem(dynamic item) {
+    final isEpisode = item["type"] == "episode";
+    return SearchItem(
+      name: item["name"] ?? "",
+      artist: isEpisode
+          ? (item["show"]?["name"] ?? "")
+          : _joinArtistNames(item["artists"] ?? []),
+      imgUrl: smallestImageUrl(
+        isEpisode ? item["images"] : item["album"]?["images"],
+      ),
+      ctxUri: item["uri"] ?? "",
+    );
+  }
+
   // Shared by tracks and albums: both carry name/uri and an "artists" list
   static SearchItem _artistItem(dynamic json, dynamic images) {
     return SearchItem(
