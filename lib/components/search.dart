@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/components/item_tile.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/window_selection.dart';
+import 'package:lightify/pages/profile_pages.dart';
 import 'package:lightify/pages/queue_page.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
@@ -170,7 +171,10 @@ class _SearchState extends State<Search> {
           PopupHost.of(context).show(const QueuePage());
         } else if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          _queueItem(relevantList.items[relevantList.selected].ctxUri);
+          spotifyService.queueIfPlayable(
+            relevantList.items[relevantList.selected].ctxUri,
+            deviceId: widget.deviceId,
+          );
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -185,9 +189,16 @@ class _SearchState extends State<Search> {
         });
 
       case LogicalKeyboardKey.keyA:
-        setState(() {
-          searchKind = SearchKind.album;
-        });
+        if (e.character == "A") {
+          if (relevantList.selected >= 0 &&
+              relevantList.selected < relevantList.items.length) {
+            openCreatorPage(context, relevantList.items[relevantList.selected]);
+          }
+        } else {
+          setState(() {
+            searchKind = SearchKind.album;
+          });
+        }
 
       case LogicalKeyboardKey.keyT:
         setState(() {
@@ -210,19 +221,6 @@ class _SearchState extends State<Search> {
         return KeyEventResult.ignored;
     }
     return KeyEventResult.handled;
-  }
-
-  void _queueItem(String uri) {
-    // Spotify only queues single tracks/episodes, not albums or playlists
-    final kind = uri.split(":").elementAtOrNull(1);
-    if (kind != "track" && kind != "episode") {
-      debugPrint("can't queue a $kind, only tracks and episodes");
-      return;
-    }
-    spotifyService.queue(uri, deviceId: widget.deviceId).catchError((e) {
-      debugPrint("queueing $uri failed: $e");
-      return Response(requestOptions: RequestOptions());
-    });
   }
 
   SearchList getRelevantList() {
@@ -263,12 +261,7 @@ class _SearchState extends State<Search> {
 
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
-      if (ctxUri.split(":")[1] == "track") {
-        spotifyService.playTracks([ctxUri], deviceId: widget.deviceId);
-      } else {
-        spotifyService.playPlaylistOrAlbums(ctxUri, deviceId: widget.deviceId);
-      }
-
+      spotifyService.playUri(ctxUri, deviceId: widget.deviceId);
       widget.setPlaying(true);
     }
   }

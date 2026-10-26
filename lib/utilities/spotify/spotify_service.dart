@@ -13,6 +13,7 @@ import 'package:lightify/utilities/spotify/spotify_http_client.dart';
 
 part 'service_parts/player.dart';
 part 'service_parts/auth.dart';
+part 'service_parts/browse.dart';
 
 class SpotifyService {
   final FlutterSecureStorage _storage;

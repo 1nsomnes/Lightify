@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/components/item_tile.dart';
 import 'package:lightify/components/popup_host.dart';
+import 'package:lightify/pages/profile_pages.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
@@ -101,6 +102,10 @@ class _QueuePageState extends State<QueuePage> {
       // Shift+Q toggles the queue, so it also closes it
       case LogicalKeyboardKey.keyQ when e.character == "Q":
         PopupHost.of(context).close();
+      case LogicalKeyboardKey.keyA when e.character == "A":
+        if (_selected < _queue.length) {
+          openCreatorPage(context, _queue[_selected]);
+        }
       default:
         return KeyEventResult.ignored;
     }
