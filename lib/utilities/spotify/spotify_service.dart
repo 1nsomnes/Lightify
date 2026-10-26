@@ -16,6 +16,10 @@ part 'service_parts/auth.dart';
 part 'service_parts/browse.dart';
 
 class SpotifyService {
+  // the web player's device name (set in assets/player.html), whatever the
+  // user's Spotify app is called
+  static const playerName = "Lightify";
+
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
   // set by HomePage once the web player exists; a refresh can happen before that
@@ -53,6 +57,19 @@ class SpotifyService {
               await attemptRefresh()) {
             opts.headers["Authorization"] = "Bearer $_token";
             opts.extra["__retry"] = true;
+            try {
+              return handler.resolve(await dio.fetch(opts));
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
+          }
+          // a 404 on a call naming our device means its id went stale
+          if (statusCode == 404 &&
+              opts.queryParameters.containsKey("device_id") &&
+              opts.extra["__deviceRetry"] != true &&
+              await refreshDeviceId()) {
+            opts.queryParameters["device_id"] = _deviceId;
+            opts.extra["__deviceRetry"] = true;
             try {
               return handler.resolve(await dio.fetch(opts));
             } on DioException catch (retryError) {

@@ -17,7 +17,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 class Search extends StatefulWidget {
   const Search({
     super.key,
-    required this.deviceId,
     required this.skip,
     required this.prev,
     required this.pause,
@@ -26,8 +25,6 @@ class Search extends StatefulWidget {
     required this.toggleRepeat,
     required this.toggleShuffle,
   });
-
-  final String deviceId;
 
   final Function skip;
   final Function prev;
@@ -173,7 +170,7 @@ class _SearchState extends State<Search> {
             relevantList.selected < relevantList.items.length) {
           spotifyService.queueIfPlayable(
             relevantList.items[relevantList.selected].ctxUri,
-            deviceId: widget.deviceId,
+            deviceId: spotifyService.getDeviceId,
           );
         }
       case LogicalKeyboardKey.space:
@@ -268,7 +265,7 @@ class _SearchState extends State<Search> {
 
   void playSelected(String? ctxUri) {
     if (ctxUri != null) {
-      spotifyService.playUri(ctxUri, deviceId: widget.deviceId);
+      spotifyService.playUri(ctxUri, deviceId: spotifyService.getDeviceId);
       widget.setPlaying(true);
     }
   }

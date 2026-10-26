@@ -25,7 +25,6 @@ class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   late final SpotifyService spotifyService;
   late final StreamSubscription _playbackChangeSubscription;
-  String deviceId = "";
 
   static const Color _buttonColor = Color(0xFF616161); // Colors.grey[700]
 
@@ -33,7 +32,9 @@ class _HomePageState extends State<HomePage> {
     final html = await rootBundle.loadString('assets/player.html');
     if (mounted) {
       _controller.loadHtmlString(
-        html.replaceAll("{token}", spotifyService.getToken),
+        html
+            .replaceAll("{token}", spotifyService.getToken)
+            .replaceAll("{name}", SpotifyService.playerName),
       );
     }
   }
@@ -96,13 +97,7 @@ class _HomePageState extends State<HomePage> {
             case "updateDataFromPlayer":
               spotifyService.processStateFromPlayer(json["body"]);
             case "setDeviceId":
-              final String id = json["body"]["device_id"];
-              spotifyService.setDeviceId(id);
-              if (id != deviceId) {
-                setState(() {
-                  deviceId = id;
-                });
-              }
+              spotifyService.setDeviceId(json["body"]["device_id"]);
             case "authenticationFailed":
               spotifyService.attemptRefresh();
             default:
@@ -149,6 +144,8 @@ class _HomePageState extends State<HomePage> {
     final setTokenString = "setToken('$escaped');";
     await _controller.runJavaScript(setTokenString);
     await _controller.runJavaScript("reconnect();");
+    // reconnecting doesn't re-fire `ready`, so pick up a changed id here
+    spotifyService.refreshDeviceId();
   }
 
   void _next() {
@@ -289,7 +286,6 @@ class _HomePageState extends State<HomePage> {
             // instead of overflowing
             Expanded(
               child: Search(
-                deviceId: deviceId,
                 pause: _togglePlay,
                 prev: _prev,
                 skip: _next,

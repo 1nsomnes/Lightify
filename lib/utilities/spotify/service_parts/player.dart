@@ -133,6 +133,34 @@ extension Player on SpotifyService {
     }
   }
 
+  // The web player can re-register under a new id (e.g. after the Mac sleeps)
+  // without firing `ready` again, so look it up by name. Returns true when the
+  // id changed.
+  Future<bool> refreshDeviceId() async {
+    try {
+      final response = await dio.get("me/player/devices");
+      final devices = (response.data["devices"] as List)
+          .where(
+            (d) => d["name"] == SpotifyService.playerName && d["id"] != null,
+          )
+          .toList();
+      if (devices.isEmpty) return false;
+      // two Macs running Lightify both show up; the active one is ours
+      final device = devices.firstWhere(
+        (d) => d["is_active"] == true,
+        orElse: () => devices.first,
+      );
+      final String id = device["id"];
+      if (id == _deviceId) return false;
+      debugPrint("device id changed: $_deviceId -> $id");
+      _deviceId = id;
+      return true;
+    } on DioException catch (e) {
+      debugPrint("couldn't look up the device id: $e");
+      return false;
+    }
+  }
+
   Future<Response> getQueue() {
     return dio.get("me/player/queue");
   }
