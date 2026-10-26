@@ -164,7 +164,9 @@ class _SearchState extends State<Search> {
       case LogicalKeyboardKey.keyQ:
         if (relevantList.selected >= 0 &&
             relevantList.selected < relevantList.items.length) {
-          spotifyService.queue(relevantList.items[relevantList.selected].ctxUri);
+          spotifyService.queue(
+            relevantList.items[relevantList.selected].ctxUri,
+          );
         }
       case LogicalKeyboardKey.space:
         widget.pause();
@@ -344,14 +346,13 @@ class _SearchState extends State<Search> {
           ),
         ),
         WindowSelection(screen: searchKind, mine: mine),
-        Focus(
-          focusNode: _keyNode,
-          onKeyEvent: _onKey,
-          child: relevantList.items.isEmpty
-              ? const SizedBox.shrink()
-              : SizedBox(
-                  height: 350,
-                  child: ScrollablePositionedList.builder(
+        Expanded(
+          child: Focus(
+            focusNode: _keyNode,
+            onKeyEvent: _onKey,
+            child: relevantList.items.isEmpty
+                ? const SizedBox.shrink()
+                : ScrollablePositionedList.builder(
                     physics: const ClampingScrollPhysics(),
                     itemScrollController: _scroll,
                     itemCount: relevantList.items.length,
@@ -380,8 +381,9 @@ class _SearchState extends State<Search> {
                       );
                     },
                   ),
-                ),
+          ),
         ),
+        const SizedBox(height: 16),
       ],
     );
   }

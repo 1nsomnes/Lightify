@@ -18,6 +18,7 @@ class MainFlutterWindow: NSWindow {
 
         //self.styleMask.remove(.titled)
         self.styleMask.insert(.fullSizeContentView)
+        self.styleMask.remove(.resizable)
 
         self.titleVisibility = .hidden
         self.isMovableByWindowBackground = true

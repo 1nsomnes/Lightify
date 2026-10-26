@@ -278,15 +278,19 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          Search(
-            deviceId: deviceId,
-            pause: _togglePlay,
-            prev: _prev,
-            skip: _next,
-            setPlaying: _setPlaying,
-            updateToken: _updateToken,
-            toggleRepeat: _switchRepeatMode,
-            toggleShuffle: _toggleShuffle,
+          // fill only the space left in the window so the list scrolls
+          // instead of overflowing
+          Expanded(
+            child: Search(
+              deviceId: deviceId,
+              pause: _togglePlay,
+              prev: _prev,
+              skip: _next,
+              setPlaying: _setPlaying,
+              updateToken: _updateToken,
+              toggleRepeat: _switchRepeatMode,
+              toggleShuffle: _toggleShuffle,
+            ),
           ),
         ],
       ),
