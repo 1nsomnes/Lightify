@@ -8,6 +8,7 @@ import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/components/window_selection.dart';
 import 'package:lightify/pages/profile_pages.dart';
 import 'package:lightify/pages/queue_page.dart';
+import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
 import 'package:lightify/utilities/spotify/search_result.dart';
@@ -69,6 +70,9 @@ class _SearchState extends State<Search> {
   final SearchList _myFullAlbums = SearchList();
 
   late final SpotifyService spotifyService;
+  late final _hold = HoldToScroll(
+    (delta, duration) => _moveSelection(getRelevantList(), delta, duration),
+  );
 
   void loadPersonalCatalog(
     Future<Response> Function(int, int) call,
@@ -123,34 +127,29 @@ class _SearchState extends State<Search> {
     _textController.dispose();
     _keyNode.dispose();
     _searchNode.dispose();
+    _hold.dispose();
     super.dispose();
   }
 
-  void _moveSelection(SearchList list, int delta) {
+  void _moveSelection(SearchList list, int delta, Duration scrollDuration) {
+    if (list.items.isEmpty) return;
     setState(() {
       list.selected = (list.selected + delta).clamp(0, list.items.length - 1);
     });
     _scroll.scrollTo(
       index: list.selected,
-      duration: const Duration(milliseconds: 200),
+      duration: scrollDuration,
       alignment: 0.38,
     );
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
+    if (_hold.handle(e)) return KeyEventResult.handled;
     if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
     var relevantList = getRelevantList();
 
     switch (lk) {
-      case LogicalKeyboardKey.arrowDown:
-      case LogicalKeyboardKey.keyJ:
-        _moveSelection(relevantList, 1);
-
-      case LogicalKeyboardKey.arrowUp:
-      case LogicalKeyboardKey.keyK:
-        _moveSelection(relevantList, -1);
-
       case LogicalKeyboardKey.tab:
         setState(() => relevantList.selected = -1);
         _searchNode.requestFocus();

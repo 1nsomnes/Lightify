@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/components/item_tile.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/pages/profile_pages.dart';
+import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
@@ -28,6 +29,7 @@ class _QueuePageState extends State<QueuePage> {
   SearchItem? _current;
   List<SearchItem> _queue = [];
   int _selected = 0;
+  late final _hold = HoldToScroll(_moveSelection);
   bool _loading = true;
   String? _error;
 
@@ -48,6 +50,7 @@ class _QueuePageState extends State<QueuePage> {
   void dispose() {
     _reloadDebounce?.cancel();
     _playbackSubscription.cancel();
+    _hold.dispose();
     super.dispose();
   }
 
@@ -78,27 +81,22 @@ class _QueuePageState extends State<QueuePage> {
     }
   }
 
-  void _moveSelection(int delta) {
+  void _moveSelection(int delta, Duration scrollDuration) {
     if (_queue.isEmpty) return;
     setState(() {
       _selected = (_selected + delta).clamp(0, _queue.length - 1);
     });
     _scroll.scrollTo(
       index: _selected,
-      duration: const Duration(milliseconds: 200),
+      duration: scrollDuration,
       alignment: 0.38,
     );
   }
 
   KeyEventResult _onKey(KeyEvent e) {
+    if (_hold.handle(e)) return KeyEventResult.handled;
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
     switch (e.logicalKey) {
-      case LogicalKeyboardKey.arrowDown:
-      case LogicalKeyboardKey.keyJ:
-        _moveSelection(1);
-      case LogicalKeyboardKey.arrowUp:
-      case LogicalKeyboardKey.keyK:
-        _moveSelection(-1);
       // Shift+Q toggles the queue, so it also closes it
       case LogicalKeyboardKey.keyA when e.character == "A":
         if (_selected < _queue.length) {

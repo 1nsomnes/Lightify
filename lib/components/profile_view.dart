@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/components/item_tile.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/pages/profile_pages.dart';
+import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -90,12 +91,19 @@ class _ProfileViewState extends State<ProfileView> {
   // row index of each selectable item, in order
   List<int> _itemRows = [];
   int _selected = 0;
+  late final _hold = HoldToScroll(_moveSelection);
 
   @override
   void initState() {
     super.initState();
     spotifyService = GetIt.instance.get<SpotifyService>();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _hold.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -138,29 +146,24 @@ class _ProfileViewState extends State<ProfileView> {
     return _rows[_itemRows[_selected]] as _ItemRow;
   }
 
-  void _moveSelection(int delta) {
+  void _moveSelection(int delta, Duration scrollDuration) {
     if (_itemRows.isEmpty) return;
     setState(() {
       _selected = (_selected + delta).clamp(0, _itemRows.length - 1);
     });
     _scroll.scrollTo(
       index: _itemRows[_selected],
-      duration: const Duration(milliseconds: 200),
+      duration: scrollDuration,
       alignment: 0.38,
     );
   }
 
   KeyEventResult _onKey(KeyEvent e) {
+    if (_hold.handle(e)) return KeyEventResult.handled;
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
     final row = _selectedRow;
     final item = row?.item;
     switch (e.logicalKey) {
-      case LogicalKeyboardKey.arrowDown:
-      case LogicalKeyboardKey.keyJ:
-        _moveSelection(1);
-      case LogicalKeyboardKey.arrowUp:
-      case LogicalKeyboardKey.keyK:
-        _moveSelection(-1);
       case LogicalKeyboardKey.enter:
         if (row == null) break;
         final contextUri = row.contextUri;
