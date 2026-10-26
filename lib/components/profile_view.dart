@@ -16,11 +16,14 @@ class ProfileSection {
     required this.title,
     required this.items,
     this.numbered = false,
+    this.contextUri,
   });
 
   final String title;
   final List<SearchItem> items;
   final bool numbered;
+  // when set, Enter plays this album/playlist starting at the selected track
+  final String? contextUri;
 }
 
 class ProfileData {
@@ -40,19 +43,22 @@ class ProfileData {
 /// Popup page for something that owns music (an artist or a user): a header
 /// with a badge naming the [kind], then [ProfileSection]s of playable items.
 ///
-/// J/K select, Enter plays, q queues, Shift+A opens the selected item's
-/// artist/owner (replacing this popup).
+/// J/K select, Enter plays, q queues, Shift+A / Shift+P open the selected
+/// item's album / artist or owner (replacing this popup).
 class ProfileView extends StatefulWidget {
   const ProfileView({
     super.key,
     required this.kind,
     required this.icon,
     required this.load,
+    this.roundArtwork = true,
   });
 
   final String kind;
   final IconData icon;
   final Future<ProfileData> Function() load;
+  // people get a round picture, albums keep square cover art
+  final bool roundArtwork;
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -68,9 +74,10 @@ class _TitleRow extends _Row {
 }
 
 class _ItemRow extends _Row {
-  _ItemRow(this.item, this.number);
+  _ItemRow(this.item, this.number, this.contextUri);
   final SearchItem item;
   final int? number;
+  final String? contextUri;
 }
 
 class _ProfileViewState extends State<ProfileView> {
@@ -102,7 +109,13 @@ class _ProfileViewState extends State<ProfileView> {
         rows.add(_TitleRow(section.title));
         for (int i = 0; i < section.items.length; i++) {
           itemRows.add(rows.length);
-          rows.add(_ItemRow(section.items[i], section.numbered ? i + 1 : null));
+          rows.add(
+            _ItemRow(
+              section.items[i],
+              section.numbered ? i + 1 : null,
+              section.contextUri,
+            ),
+          );
         }
       }
       setState(() {
@@ -120,9 +133,9 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  SearchItem? get _selectedItem {
+  _ItemRow? get _selectedRow {
     if (_itemRows.isEmpty) return null;
-    return (_rows[_itemRows[_selected]] as _ItemRow).item;
+    return _rows[_itemRows[_selected]] as _ItemRow;
   }
 
   void _moveSelection(int delta) {
@@ -139,7 +152,8 @@ class _ProfileViewState extends State<ProfileView> {
 
   KeyEventResult _onKey(KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
-    final item = _selectedItem;
+    final row = _selectedRow;
+    final item = row?.item;
     switch (e.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
       case LogicalKeyboardKey.keyJ:
@@ -148,9 +162,17 @@ class _ProfileViewState extends State<ProfileView> {
       case LogicalKeyboardKey.keyK:
         _moveSelection(-1);
       case LogicalKeyboardKey.enter:
-        if (item != null) {
+        if (row == null) break;
+        final contextUri = row.contextUri;
+        if (contextUri != null) {
+          spotifyService.playInContext(
+            contextUri,
+            row.item.ctxUri,
+            deviceId: spotifyService.getDeviceId,
+          );
+        } else {
           spotifyService.playUri(
-            item.ctxUri,
+            row.item.ctxUri,
             deviceId: spotifyService.getDeviceId,
           );
         }
@@ -162,6 +184,8 @@ class _ProfileViewState extends State<ProfileView> {
           );
         }
       case LogicalKeyboardKey.keyA when e.character == "A":
+        if (item != null) openAlbumPage(context, item);
+      case LogicalKeyboardKey.keyP when e.character == "P":
         if (item != null) openCreatorPage(context, item);
       default:
         return KeyEventResult.ignored;
@@ -195,6 +219,7 @@ class _ProfileViewState extends State<ProfileView> {
           _HeaderRow() => _ProfileHeader(
             kind: widget.kind,
             icon: widget.icon,
+            roundArtwork: widget.roundArtwork,
             data: data,
           ),
           _TitleRow(:final title) => Padding(
@@ -208,7 +233,7 @@ class _ProfileViewState extends State<ProfileView> {
               ),
             ),
           ),
-          _ItemRow(:final item, :final number) => Row(
+          _ItemRow(:final item, :final number, contextUri: _) => Row(
             children: [
               if (number != null)
                 SizedBox(
@@ -238,11 +263,13 @@ class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.kind,
     required this.icon,
+    required this.roundArtwork,
     required this.data,
   });
 
   final String kind;
   final IconData icon;
+  final bool roundArtwork;
   final ProfileData data;
 
   @override
@@ -283,10 +310,13 @@ class _ProfileHeader extends StatelessWidget {
                 Container(
                   width: 128,
                   height: 128,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFF2A2B30),
-                    boxShadow: [
+                  decoration: BoxDecoration(
+                    shape: roundArtwork ? BoxShape.circle : BoxShape.rectangle,
+                    borderRadius: roundArtwork
+                        ? null
+                        : const BorderRadius.all(Radius.circular(6)),
+                    color: const Color(0xFF2A2B30),
+                    boxShadow: const [
                       BoxShadow(color: Color(0x99000000), blurRadius: 20),
                     ],
                   ),

@@ -20,7 +20,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final SpotifyService _spotifyService = GetIt.instance.get<SpotifyService>();
-  final FlutterSecureStorage _storage = GetIt.instance.get<FlutterSecureStorage>();
+  final FlutterSecureStorage _storage = GetIt.instance
+      .get<FlutterSecureStorage>();
   late final TextEditingController _textController = TextEditingController(
     text: _spotifyService.getClientId,
   );

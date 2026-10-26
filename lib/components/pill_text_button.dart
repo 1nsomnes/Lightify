@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// GENERATED USING CHATGPT 
+// GENERATED USING CHATGPT
 class PillButton extends StatelessWidget {
   final String label;
 
@@ -31,11 +31,8 @@ class PillButton extends StatelessWidget {
       child: TextButton(
         style: TextButton.styleFrom(
           backgroundColor: selected ? activeColor : inactiveColor,
-          shape: const StadiumBorder(),           // pill shape
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
-          ),
+          shape: const StadiumBorder(), // pill shape
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
         onPressed: onPressed,
         child: Text(

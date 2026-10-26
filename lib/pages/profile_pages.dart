@@ -32,6 +32,26 @@ void openCreatorPage(BuildContext context, SearchItem item) {
   if (page != null) PopupHost.of(context).show(page);
 }
 
+/// Opens the album page for [item]: an album itself, or a track's album.
+void openAlbumPage(BuildContext context, SearchItem item) {
+  final albumUri = item.ctxUri.split(":").elementAtOrNull(1) == "album"
+      ? item.ctxUri
+      : item.albumUri;
+  final id = albumUri?.split(":").elementAtOrNull(2);
+  if (albumUri == null || id == null) {
+    debugPrint("no album to open for ${item.ctxUri}");
+    return;
+  }
+  PopupHost.of(context).show(
+    ProfileView(
+      kind: "Album",
+      icon: Icons.album,
+      roundArtwork: false,
+      load: () => _loadAlbum(id),
+    ),
+  );
+}
+
 Future<ProfileData> _loadArtist(String id) async {
   final spotify = GetIt.instance.get<SpotifyService>();
   // the artist itself is required; the lists are shown when available
@@ -66,6 +86,7 @@ Future<ProfileData> _loadArtist(String id) async {
               ),
               ctxUri: track["uri"] ?? "",
               creatorUri: ProcessResponse.firstArtistUri(track["artists"]),
+              albumUri: track["album"]?["uri"],
             ),
         ],
       ),
@@ -112,6 +133,45 @@ Future<ProfileData> _loadUser(String id) async {
                 ctxUri: playlist["uri"] ?? "",
                 creatorUri: playlist["owner"]?["uri"],
               ),
+        ],
+      ),
+    ],
+  );
+}
+
+Future<ProfileData> _loadAlbum(String id) async {
+  final album = (await GetIt.instance.get<SpotifyService>().getAlbum(id)).data;
+  final String albumUri = album["uri"] ?? "spotify:album:$id";
+  final List<dynamic> tracks = album["tracks"]?["items"] ?? [];
+
+  final minutes =
+      tracks.fold<int>(0, (sum, t) => sum + ((t["duration_ms"] ?? 0) as int)) ~/
+      60000;
+  final int count = album["total_tracks"] ?? tracks.length;
+  return ProfileData(
+    name: album["name"] ?? "",
+    imageUrl: _largestImageUrl(album["images"]),
+    details: [
+      ProcessResponse.joinArtistNames(album["artists"] ?? []),
+      _albumSubtitle(album),
+      "$count ${count == 1 ? "song" : "songs"}, $minutes min",
+    ].where((s) => s.isNotEmpty).join("  ·  "),
+    sections: [
+      ProfileSection(
+        title: "Tracks",
+        numbered: true,
+        contextUri: albumUri,
+        items: [
+          // album tracks don't repeat the album, so link them back to it
+          for (final track in tracks)
+            SearchItem(
+              name: track["name"] ?? "",
+              artist: ProcessResponse.joinArtistNames(track["artists"] ?? []),
+              imgUrl: ProcessResponse.smallestImageUrl(album["images"]),
+              ctxUri: track["uri"] ?? "",
+              creatorUri: ProcessResponse.firstArtistUri(track["artists"]),
+              albumUri: albumUri,
+            ),
         ],
       ),
     ],

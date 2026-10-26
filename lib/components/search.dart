@@ -184,15 +184,22 @@ class _SearchState extends State<Search> {
         widget.skip();
 
       case LogicalKeyboardKey.keyP:
-        setState(() {
-          searchKind = SearchKind.playlist;
-        });
+        if (e.character == "P") {
+          if (relevantList.selected >= 0 &&
+              relevantList.selected < relevantList.items.length) {
+            openCreatorPage(context, relevantList.items[relevantList.selected]);
+          }
+        } else {
+          setState(() {
+            searchKind = SearchKind.playlist;
+          });
+        }
 
       case LogicalKeyboardKey.keyA:
         if (e.character == "A") {
           if (relevantList.selected >= 0 &&
               relevantList.selected < relevantList.items.length) {
-            openCreatorPage(context, relevantList.items[relevantList.selected]);
+            openAlbumPage(context, relevantList.items[relevantList.selected]);
           }
         } else {
           setState(() {

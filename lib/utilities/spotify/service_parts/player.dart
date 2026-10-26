@@ -103,6 +103,22 @@ extension Player on SpotifyService {
         : playPlaylistOrAlbums(uri, deviceId: deviceId);
   }
 
+  // Starts [contextUri] (an album or playlist) at [trackUri]
+  Future<Response> playInContext(
+    String contextUri,
+    String trackUri, {
+    String deviceId = "",
+  }) {
+    return dio.put(
+      "me/player/play",
+      queryParameters: {if (deviceId.isNotEmpty) "device_id": deviceId},
+      data: {
+        "context_uri": contextUri,
+        "offset": {"uri": trackUri},
+      },
+    );
+  }
+
   // Spotify only queues single tracks/episodes, not albums or playlists
   Future<void> queueIfPlayable(String uri, {String deviceId = ""}) async {
     final kind = uri.split(":").elementAtOrNull(1);

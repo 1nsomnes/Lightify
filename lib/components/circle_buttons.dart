@@ -8,10 +8,7 @@ Widget buildCircleButton({
 }) {
   return RawMaterialButton(
     onPressed: onPressed,
-    constraints: BoxConstraints.tightFor(
-      width: size,
-      height: size,
-    ),
+    constraints: BoxConstraints.tightFor(width: size, height: size),
     shape: const CircleBorder(),
     fillColor: backgroundColor,
     elevation: 2,

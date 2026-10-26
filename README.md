@@ -59,7 +59,8 @@ right now.
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
 | Shift + Q | Open/close the queue |
-| Shift + A | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
+| Shift + A | Open the selected item's album (tracks/albums) |
+| Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
 | B | Close the current pop up page |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |

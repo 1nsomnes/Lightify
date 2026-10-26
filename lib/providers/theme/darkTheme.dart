@@ -26,12 +26,7 @@ ThemeData darkMode = ThemeData(
     labelSmall: TextStyle(color: Colors.white),
   ),
   appBarTheme: const AppBarTheme(
-    titleTextStyle: TextStyle(
-      color: Colors.white,
-      fontSize: 25,
-    ),
-    iconTheme: IconThemeData(
-      color: Colors.white,
-    ),
+    titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+    iconTheme: IconThemeData(color: Colors.white),
   ),
 );

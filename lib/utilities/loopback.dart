@@ -6,8 +6,7 @@ Future<Uri> loopbackAuthorize({
   required Uri authorizeUrl,
   int port = 3434,
 }) async {
-  final server =
-      await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
 
   try {
     if (!await launchUrl(authorizeUrl, mode: LaunchMode.externalApplication)) {

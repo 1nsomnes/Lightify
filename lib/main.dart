@@ -35,9 +35,9 @@ void main() async {
 
   await Future.wait([
     hotKeyManager.unregisterAll(),
-    windowManager
-        .ensureInitialized()
-        .then((_) => windowManager.setSkipTaskbar(true)),
+    windowManager.ensureInitialized().then(
+      (_) => windowManager.setSkipTaskbar(true),
+    ),
   ]);
 
   if (Platform.isMacOS) {
@@ -48,10 +48,7 @@ void main() async {
 
   // RUN THE APPLICATION
   runApp(
-    ChangeNotifierProvider.value(
-      value: authProvider,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider.value(value: authProvider, child: const MyApp()),
   );
 }
 

@@ -25,7 +25,13 @@ class ProcessResponse {
   }) {
     for (dynamic track in data) {
       if (savedResult) track = track["track"];
-      list.add(_artistItem(track, track["album"]?["images"]));
+      list.add(
+        _artistItem(
+          track,
+          track["album"]?["images"],
+          albumUri: track["album"]?["uri"],
+        ),
+      );
     }
   }
 
@@ -67,23 +73,29 @@ class ProcessResponse {
       name: item["name"] ?? "",
       artist: isEpisode
           ? (item["show"]?["name"] ?? "")
-          : _joinArtistNames(item["artists"] ?? []),
+          : joinArtistNames(item["artists"] ?? []),
       imgUrl: smallestImageUrl(
         isEpisode ? item["images"] : item["album"]?["images"],
       ),
       ctxUri: item["uri"] ?? "",
       creatorUri: isEpisode ? null : firstArtistUri(item["artists"]),
+      albumUri: isEpisode ? null : item["album"]?["uri"],
     );
   }
 
   // Shared by tracks and albums: both carry name/uri and an "artists" list
-  static SearchItem _artistItem(dynamic json, dynamic images) {
+  static SearchItem _artistItem(
+    dynamic json,
+    dynamic images, {
+    String? albumUri,
+  }) {
     return SearchItem(
       name: json["name"],
-      artist: _joinArtistNames(json["artists"]),
+      artist: joinArtistNames(json["artists"]),
       imgUrl: smallestImageUrl(images),
       ctxUri: json["uri"],
       creatorUri: firstArtistUri(json["artists"]),
+      albumUri: albumUri,
     );
   }
 
@@ -93,7 +105,7 @@ class ProcessResponse {
   }
 
   // Builds "A, B, C" directly instead of via a mapped iterable + dynamic join
-  static String _joinArtistNames(List<dynamic> artists) {
+  static String joinArtistNames(List<dynamic> artists) {
     final buffer = StringBuffer();
     for (int i = 0; i < artists.length; i++) {
       if (i > 0) buffer.write(', ');

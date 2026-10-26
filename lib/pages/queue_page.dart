@@ -104,6 +104,10 @@ class _QueuePageState extends State<QueuePage> {
         PopupHost.of(context).close();
       case LogicalKeyboardKey.keyA when e.character == "A":
         if (_selected < _queue.length) {
+          openAlbumPage(context, _queue[_selected]);
+        }
+      case LogicalKeyboardKey.keyP when e.character == "P":
+        if (_selected < _queue.length) {
           openCreatorPage(context, _queue[_selected]);
         }
       default:

@@ -46,6 +46,20 @@ void main() {
       expect(list.single.creatorUri, "spotify:artist:jd");
     });
 
+    test("tracks link to their album", () {
+      final list = <SearchItem>[];
+      ProcessResponse.processTracksJson([
+        {
+          "name": "Atmosphere",
+          "uri": "spotify:track:1",
+          "album": {"uri": "spotify:album:closer", "images": []},
+          "artists": [],
+        },
+      ], list);
+      expect(list.single.albumUri, "spotify:album:closer");
+      expect(list.single.creatorUri, isNull);
+    });
+
     test("playlists link to their owner", () {
       final list = <SearchItem>[];
       ProcessResponse.processPlaylistsJson([
@@ -90,7 +104,10 @@ void main() {
         ProfileSection(
           title: "Popular",
           numbered: true,
-          items: [item("a"), item("b", creator: "spotify:user:someone")],
+          items: [
+            item("a"),
+            item("b", creator: "spotify:user:someone"),
+          ],
         ),
         ProfileSection(title: "Discography", items: [item("c")]),
         const ProfileSection(title: "Empty", items: []),
@@ -136,7 +153,7 @@ void main() {
     expect(isSelected("c"), isTrue);
   });
 
-  testWidgets("Shift+A replaces the popup with the owner's profile", (
+  testWidgets("Shift+P replaces the popup with the owner's profile", (
     tester,
   ) async {
     await pumpHost(tester);
@@ -145,7 +162,7 @@ void main() {
 
     await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
     await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
-    await tester.sendKeyEvent(LogicalKeyboardKey.keyA, character: "A");
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyP, character: "P");
     await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
     await tester.pumpAndSettle();
 
@@ -166,6 +183,56 @@ void main() {
     await pumpHost(tester);
     final context = tester.element(find.text("base"));
     openCreatorPage(context, item("x"));
+    await tester.pumpAndSettle();
+    expect(host.isOpen, isFalse);
+  });
+
+  testWidgets("Shift+A opens a track's album, an album opens itself", (
+    tester,
+  ) async {
+    await pumpHost(tester);
+    final context = tester.element(find.text("base"));
+
+    openAlbumPage(
+      context,
+      const SearchItem(
+        name: "t",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:track:t",
+        albumUri: "spotify:album:closer",
+      ),
+    );
+    await tester.pumpAndSettle();
+    // no network in tests, so the album page shows its load error
+    expect(find.textContaining("Couldn't load this album"), findsOneWidget);
+
+    host.close();
+    await tester.pumpAndSettle();
+    openAlbumPage(
+      context,
+      const SearchItem(
+        name: "a",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:album:closer",
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Couldn't load this album"), findsOneWidget);
+
+    // playlists have no album
+    host.close();
+    await tester.pumpAndSettle();
+    openAlbumPage(
+      context,
+      const SearchItem(
+        name: "p",
+        artist: "",
+        imgUrl: "",
+        ctxUri: "spotify:playlist:p",
+      ),
+    );
     await tester.pumpAndSettle();
     expect(host.isOpen, isFalse);
   });

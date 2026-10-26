@@ -17,6 +17,10 @@ extension Browse on SpotifyService {
     );
   }
 
+  Future<Response> getAlbum(String id) {
+    return dio.get("albums/${Uri.encodeComponent(id)}");
+  }
+
   Future<Response> getUser(String id) {
     return dio.get("users/${Uri.encodeComponent(id)}");
   }
