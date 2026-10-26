@@ -18,7 +18,8 @@ part 'service_parts/browse.dart';
 class SpotifyService {
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
-  late Function? updatePlayerToken;
+  // set by HomePage once the web player exists; a refresh can happen before that
+  Function? updatePlayerToken;
   late final SpotifyHttpClient http;
   late final Dio dio;
 
