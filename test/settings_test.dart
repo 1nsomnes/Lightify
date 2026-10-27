@@ -4,10 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/pages/settings_page.dart';
 import 'package:lightify/utilities/settings.dart';
+import 'package:lightify/utilities/update_check.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() async {
+    UpdateCheck.checker = () async =>
+        const VersionInfo("1.0.0", UpdateStatus.upToDate);
     SharedPreferences.setMockInitialValues({"hold_scroll_interval_ms": 200});
     await Settings.load();
   });

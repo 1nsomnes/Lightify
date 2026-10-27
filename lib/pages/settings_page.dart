@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:lightify/components/popup_host.dart';
 import 'package:lightify/utilities/hold_to_scroll.dart';
 import 'package:lightify/utilities/settings.dart';
+import 'package:lightify/utilities/update_check.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const _green = Color(0xFF1DB954);
 
@@ -19,6 +21,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final ItemScrollController _scroll = ItemScrollController();
   late final _hold = HoldToScroll(_moveSelection);
+  final _versionInfo = UpdateCheck.latest();
 
   // section titles and settings, in display order
   final List<Object> _rows = [];
@@ -116,15 +119,74 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 8, 24, 16),
-            child: Text(
-              "J/K select  ·  H/L adjust  ·  R reset  ·  Esc back",
-              style: TextStyle(color: Colors.white38, fontSize: 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    "J/K select  ·  H/L adjust  ·  R reset  ·  Esc back",
+                    style: _footerStyle,
+                  ),
+                ),
+                _VersionLabel(info: _versionInfo),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+const _footerStyle = TextStyle(color: Colors.white38, fontSize: 12);
+
+/// A thin green "up to date" or red "out of date" (click it for the release
+/// page) before the version. Just the version when GitHub couldn't be reached.
+class _VersionLabel extends StatelessWidget {
+  const _VersionLabel({required this.info});
+
+  final Future<VersionInfo> info;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: info,
+      builder: (context, snapshot) {
+        final info = snapshot.data;
+        if (info == null) return const SizedBox.shrink();
+        final version = Text("v${info.version}", style: _footerStyle);
+        Widget status(String text, Color color, {bool link = false}) => Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            decoration: link ? TextDecoration.underline : null,
+            decorationColor: color,
+          ),
+        );
+        final label = switch (info.status) {
+          UpdateStatus.unknown => null,
+          UpdateStatus.upToDate => status("up to date", _green),
+          UpdateStatus.outOfDate => MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => launchUrl(Uri.parse(info.releaseUrl!)),
+              child: status("out of date", const Color(0xFFE5534B), link: true),
+            ),
+          ),
+        };
+        if (label == null) return version;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            label,
+            const Text("  ·  ", style: _footerStyle),
+            version,
+          ],
+        );
+      },
     );
   }
 }

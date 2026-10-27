@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
 import 'package:lightify/utilities/settings.dart';
+import 'package:lightify/utilities/update_check.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -41,6 +42,8 @@ void main() async {
       (_) => windowManager.setSkipTaskbar(true),
     ),
   ]);
+  // in the background, so the settings page has the result ready
+  UpdateCheck.latest();
 
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
