@@ -94,7 +94,7 @@ abstract final class Settings {
   static final holdScrollDelay = NumberSetting(
     key: "hold_scroll_delay_ms",
     label: "Hold delay",
-    description: "How long J/K or ↑/↓ must be held before the list scrolls",
+    description: "How long J/K, ↑/↓ or Shift+H/L must be held to repeat",
     defaultValue: 300,
     min: 100,
     max: 1000,
@@ -113,11 +113,33 @@ abstract final class Settings {
     format: (ms) => "$ms ms · ${(1000 / ms).toStringAsFixed(1)} items/s",
   );
 
+  static final seekStep = NumberSetting(
+    key: "seek_step_s",
+    label: "Seek step",
+    description: "How far Shift+H / Shift+L jump in the song",
+    defaultValue: 5,
+    min: 1,
+    max: 60,
+    unit: " s",
+  );
+
+  static final holdSeekInterval = NumberSetting(
+    key: "hold_seek_interval_ms",
+    label: "Seek speed",
+    description: "Time between jumps while Shift+H/L is held; lower is faster",
+    defaultValue: 250,
+    min: 50,
+    max: 1000,
+    step: 50,
+    unit: " ms",
+  );
+
   static final sections = [
     SettingsSection(
       title: "Scrolling",
       settings: [holdScrollDelay, holdScrollInterval],
     ),
+    SettingsSection(title: "Seeking", settings: [seekStep, holdSeekInterval]),
   ];
 
   static SharedPreferences? _prefs;

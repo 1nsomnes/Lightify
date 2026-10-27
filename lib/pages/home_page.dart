@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -165,6 +166,18 @@ class _HomePageState extends State<HomePage> {
     _controller.runJavaScript("seek($ms);");
   }
 
+  // builds on the shown position, so repeated jumps (a held key) add up
+  // before the player reports back
+  void _seekBy(int deltaMs) {
+    if (_durationMs <= 0) return;
+    var position = _positionMs;
+    if (playbackState.playing) {
+      position += DateTime.now().difference(_positionAt).inMilliseconds;
+    }
+    // stop just short of the end rather than skipping the song
+    _seek((position + deltaMs).clamp(0, max(0, _durationMs - 1000)));
+  }
+
   void _togglePlay() {
     setState(() {
       playbackState.playing = !playbackState.playing;
@@ -284,6 +297,7 @@ class _HomePageState extends State<HomePage> {
                 updateToken: _updateToken,
                 toggleRepeat: _switchRepeatMode,
                 toggleShuffle: _toggleShuffle,
+                seekBy: _seekBy,
                 nowPlaying: _nowPlayingItem,
                 nowPlayingSelected: _nowPlayingSelected,
               ),

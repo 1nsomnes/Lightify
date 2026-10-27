@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lightify/utilities/hold_to_scroll.dart';
+import 'package:lightify/utilities/settings.dart';
 
 void main() {
   testWidgets("holding J keeps moving after the delay, release stops it", (
@@ -53,4 +54,41 @@ void main() {
       isFalse,
     );
   });
+
+  testWidgets(
+    "Shift+H/L seek and repeat while held; plain H/L are left alone",
+    (tester) async {
+      final seeks = <int>[];
+      final hold = HoldToSeek(seeks.add);
+      await tester.pumpWidget(
+        Focus(
+          autofocus: true,
+          onKeyEvent: (_, e) =>
+              hold.handle(e) ? KeyEventResult.handled : KeyEventResult.ignored,
+          child: const SizedBox(),
+        ),
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyL);
+      expect(seeks, isEmpty);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyL, character: "L");
+      expect(seeks, [1]);
+      await tester.pump(
+        holdScrollDelay +
+            Duration(milliseconds: Settings.holdSeekInterval.value * 2),
+      );
+      expect(seeks, [1, 1, 1]);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyL);
+      await tester.pump(holdScrollDelay * 3);
+      expect(seeks, [1, 1, 1]);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyH, character: "H");
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyH);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      expect(seeks.last, -1);
+      hold.dispose();
+    },
+  );
 }

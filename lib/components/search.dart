@@ -10,6 +10,7 @@ import 'package:lightify/pages/profile_pages.dart';
 import 'package:lightify/pages/queue_page.dart';
 import 'package:lightify/pages/settings_page.dart';
 import 'package:lightify/utilities/hold_to_scroll.dart';
+import 'package:lightify/utilities/settings.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
@@ -27,6 +28,7 @@ class Search extends StatefulWidget {
     required this.updateToken,
     required this.toggleRepeat,
     required this.toggleShuffle,
+    required this.seekBy,
     required this.nowPlaying,
     required this.nowPlayingSelected,
   });
@@ -37,6 +39,8 @@ class Search extends StatefulWidget {
   final Function updateToken;
   final Function toggleRepeat;
   final Function toggleShuffle;
+  // seeks the playing song by this many ms (negative goes back)
+  final void Function(int ms) seekBy;
 
   final Function setPlaying;
 
@@ -97,6 +101,9 @@ class _SearchState extends State<Search> {
   late final _hold = HoldToScroll(
     (delta, duration) => _moveSelection(_shown, delta, duration),
   );
+  late final _seekHold = HoldToSeek(
+    (direction) => widget.seekBy(direction * Settings.seekStep.value * 1000),
+  );
 
   void loadPersonalCatalog(
     Future<Response> Function(int, int) call,
@@ -153,6 +160,7 @@ class _SearchState extends State<Search> {
     _keyNode.dispose();
     _searchNode.dispose();
     _hold.dispose();
+    _seekHold.dispose();
     super.dispose();
   }
 
@@ -183,7 +191,7 @@ class _SearchState extends State<Search> {
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
-    if (_hold.handle(e)) return KeyEventResult.handled;
+    if (_hold.handle(e) || _seekHold.handle(e)) return KeyEventResult.handled;
     if (e is! KeyDownEvent) return KeyEventResult.handled;
     final lk = e.logicalKey;
     final relevantList = _shown;

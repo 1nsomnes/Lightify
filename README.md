@@ -61,6 +61,7 @@ right now.
 | Shift + Q | Open the queue |
 | Shift + C | Select the currently playing song |
 | Shift + T | Move playback from another device to Lightify |
+| Shift + H / Shift + L | Seek back / forward (hold to keep seeking; step in settings) |
 | Shift + S | Open settings (J/K select, H/L adjust, R reset) |
 | Shift + A | Open the selected item's album (tracks/albums) |
 | Shift + O | Open the selected playlist or album |
