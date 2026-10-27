@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import LightifyDemo from "./demo/LightifyDemo";
 
 const DOWNLOAD_URL = "https://github.com/1nsomnes/Lightify/releases/latest";
 const REPO_URL = "https://github.com/1nsomnes/Lightify";
@@ -8,11 +9,18 @@ const LOGO_PATH =
   "M-8 102 C 18 94, 50 72, 65 42 C 75 20, 69 6, 59 12 C 47 20, 44 58, 50 82 C 55 101, 73 105, 91 95 C 105 87, 115 76, 130 62";
 
 const BINDS: { keys: string[]; label: string }[] = [
-  { keys: ["J", "K"], label: "Move through results" },
-  { keys: ["Space"], label: "Play or pause" },
-  { keys: ["H", "L"], label: "Previous and next song" },
-  { keys: ["Q"], label: "Add to queue" },
-  { keys: ["Esc"], label: "Close" },
+  { keys: ["J", "K"], label: "Move" },
+  { keys: ["Enter"], label: "Play" },
+  { keys: ["Space"], label: "Pause" },
+  { keys: ["H", "L"], label: "Previous, next" },
+  { keys: ["Q"], label: "Queue" },
+  { keys: ["T", "A", "P"], label: "Filter results" },
+  { keys: ["M"], label: "Your library" },
+  { keys: ["⇧", "P"], label: "Open artist" },
+  { keys: ["⇧", "A"], label: "Open album" },
+  { keys: ["⇧", "Q"], label: "Open queue" },
+  { keys: ["Tab"], label: "Search" },
+  { keys: ["Esc"], label: "Back" },
 ];
 
 function normalize(e: KeyboardEvent): string {
@@ -96,7 +104,7 @@ export default function App() {
 
   return (
     <div className="backdrop relative min-h-screen overflow-x-clip">
-      <div className="grain pointer-events-none absolute inset-0 z-50" aria-hidden="true" />
+      <div className="grain pointer-events-none absolute inset-0 z-0" aria-hidden="true" />
 
       <header className="relative z-20 mx-auto flex max-w-[1120px] items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8">
         <a href="/" className={`flex items-center gap-2.5 ${linkStates}`}>
@@ -145,43 +153,21 @@ export default function App() {
           </div>
         </section>
 
-        <section className="relative mx-auto mt-20 max-w-[860px] sm:mt-28 md:mt-52" aria-label="Lightify screenshots">
+        <section className="relative mx-auto mt-16 max-w-[860px] sm:mt-24" aria-label="Lightify demo">
           {/* the logo's stroke, running behind the glass */}
           <Mark
             viewBox="-10 0 140 120"
             weight={5}
-            className="stroke-fade pointer-events-none absolute left-1/2 top-1/2 w-[135%] max-w-none -translate-x-1/2 -translate-y-[47%] text-ink sm:w-[112%]"
+            className="stroke-fade pointer-events-none absolute left-1/2 top-1/2 w-[135%] max-w-none -translate-x-1/2 -translate-y-[47%] text-ink sm:w-[118%]"
           />
 
-          <div key={summons} className="panel-in relative">
-            <figure className="absolute -right-10 -top-[150px] hidden w-[58%] md:block lg:-right-24">
-              <div className="overflow-hidden rounded-[14px] bg-ink shadow-[var(--shadow-elevated)] ring-1 ring-white/10">
-                <img
-                  src="/img/artist.png"
-                  alt="Lightify showing an artist page with popular songs"
-                  className="block w-full"
-                  width={751}
-                  height={584}
-                />
-              </div>
-            </figure>
-
-            <figure className="relative mx-auto w-full md:mr-auto md:ml-0 md:w-[86%]">
-              <div className="overflow-hidden rounded-[16px] bg-ink/55 shadow-[var(--shadow-floating)] ring-1 ring-white/15 backdrop-blur-2xl">
-                <img
-                  src="/img/search.png"
-                  alt="Lightify search panel with the current song, filters and a list of tracks"
-                  className="block w-full opacity-[0.92]"
-                  width={797}
-                  height={624}
-                />
-              </div>
-            </figure>
+          <div className="relative">
+            <LightifyDemo summonSignal={summons} />
           </div>
         </section>
 
-        <section className="mx-auto mt-24 max-w-[1040px] sm:mt-32" aria-label="Keybinds">
-          <ul className="flex flex-wrap justify-center gap-x-7 gap-y-4">
+        <section className="mx-auto mt-14 max-w-[900px] sm:mt-16" aria-label="Keybinds">
+          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3.5">
             {BINDS.map(({ keys, label }) => (
               <li key={label} className="flex items-center gap-2.5 text-[14px] text-slate">
                 <span className="flex gap-1">
@@ -200,7 +186,8 @@ export default function App() {
             ))}
           </ul>
           <p className="mt-6 text-center text-[13px] text-slate/70">
-            Try them here. The full list lives in the{" "}
+            The window above is a working copy of Lightify, playing made-up music. Every
+            shortcut is in the{" "}
             <a href={`${REPO_URL}#keybinds`} className={`text-ink underline decoration-ink/25 underline-offset-4 ${linkStates}`}>
               README
             </a>
