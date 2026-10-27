@@ -66,19 +66,6 @@ Lightify is a real Spotify player, not a remote: music plays from Lightify itsel
 | Ctrl + R | Restart |
 | Ctrl + D | Restart and delete cached data |
 
-
-## Versions, Change Logs, Future Implementations
-
-<details><summary> <h3>Future features</h3> </summary>
-
-- [ ] Auto load next options when bottom of list is reached
-- [ ] Auto size window when searching similar to spotlight
-- [ ] Theme loader
-- [ ] Add a like button for songs
-
-
-
-
 ## Contributing
 Contributions are welcome and encouraged. 
 
