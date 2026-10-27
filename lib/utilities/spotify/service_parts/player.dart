@@ -236,12 +236,20 @@ extension Player on SpotifyService {
     );
   }
 
-  Future<Response> transferPlayback() {
-    return dio.put(
-      "/me/player",
-      data: {
-        "device_ids": [_deviceId],
-      },
-    );
+  /// Moves playback from whatever device is playing to this one, keeping the
+  /// track, position and queue.
+  Future<void> transferPlayback() async {
+    // the id is in the body, so the interceptor's stale-id retry can't help
+    await refreshDeviceId();
+    try {
+      await dio.put(
+        "me/player",
+        data: {
+          "device_ids": [_deviceId],
+        },
+      );
+    } on DioException catch (e) {
+      debugPrint("couldn't transfer playback: $e");
+    }
   }
 }

@@ -69,11 +69,6 @@ class LoadHotKeys {
         ]);
         debugPrint("attempted to break both tokens");
       }, modifiers: [HotKeyModifier.shift, HotKeyModifier.control]),
-      _register(
-        PhysicalKeyboardKey.keyT,
-        spotifyService.transferPlayback,
-        modifiers: [HotKeyModifier.meta],
-      ),
     ]);
   }
 

@@ -241,7 +241,11 @@ class _SearchState extends State<Search> {
         }
 
       case LogicalKeyboardKey.keyT:
-        _toggleKind(SearchKind.track);
+        if (e.character == "T") {
+          spotifyService.transferPlayback();
+        } else {
+          _toggleKind(SearchKind.track);
+        }
 
       case LogicalKeyboardKey.keyM:
         _toggleMine();
