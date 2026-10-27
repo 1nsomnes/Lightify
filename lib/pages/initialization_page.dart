@@ -41,32 +41,32 @@ class _InitializationPageState extends State<InitializationPage> {
 
   // returns "false" iff there is a response that is not positive or token authentication error
   Future<bool> initializeApp(BuildContext context) async {
-    AuthProvider authProvider;
-    if (context.mounted) {
-      authProvider = Provider.of<AuthProvider>(context, listen: false);
-    } else {
-      // this should never happen so return false here too
-      return false;
-    }
+    // this should never happen so return false here too
+    if (!context.mounted) return false;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    final storage = FlutterSecureStorage();
-    final clientId = await storage.read(key: "client_id");
-    final token = await storage.read(key: "token");
-    final refreshToken = await storage.read(key: "refresh_token");
+    final storage = GetIt.instance.get<FlutterSecureStorage>();
+    final values = await Future.wait([
+      storage.read(key: "client_id"),
+      storage.read(key: "token"),
+      storage.read(key: "refresh_token"),
+    ]);
+    final clientId = values[0];
+    final token = values[1];
+    final refreshToken = values[2];
 
     if (clientId == null) {
       spotifyService.setClientId("");
       authProvider.setIsAuthenticated(false);
       return true;
-    } else {
-      spotifyService.setClientId(clientId);
     }
+    spotifyService.setClientId(clientId);
 
     // make sure our SpotifyService (uses auth provider) has access to the tokens
     // before any of the SpotifyService calls are made
-    if (token != null) spotifyService.setToken(token);
     if (refreshToken != null) spotifyService.setRefreshToken(refreshToken);
     if (token != null) {
+      spotifyService.setToken(token);
       try {
         final result = await spotifyService.isValidToken(token);
 
@@ -82,7 +82,6 @@ class _InitializationPageState extends State<InitializationPage> {
         // DIO throws erros when in error status code range
         authProvider.setIsAuthenticated(false);
       }
-
     } else if (refreshToken != null) {
       if (!await spotifyService.attemptRefresh()) {
         authProvider.setIsAuthenticated(false);
@@ -105,23 +104,21 @@ class _InitializationPageState extends State<InitializationPage> {
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return LoadingPage();
+              return const LoadingPage();
             }
 
             if (snapshot.data == true) {
-              final authProvider = Provider.of<AuthProvider>(context);
-              if (authProvider.isAuthenticated) {
-                return HomePage();
-              } else {
-                return LoginPage();
-              }
+              final isAuthenticated = context.select<AuthProvider, bool>(
+                (auth) => auth.isAuthenticated,
+              );
+              return isAuthenticated ? const HomePage() : const LoginPage();
             } else {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Fatal error occured. Please restart the app."),
-                    SizedBox(height: 20),
+                    const Text("Fatal error occured. Please restart the app."),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: restart,
                       style: const ButtonStyle(
@@ -129,7 +126,7 @@ class _InitializationPageState extends State<InitializationPage> {
                           Color(0xFFFF2400),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         "Refresh",
                         style: TextStyle(color: Colors.white),
                       ),

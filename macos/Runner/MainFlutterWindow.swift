@@ -18,6 +18,7 @@ class MainFlutterWindow: NSWindow {
 
         //self.styleMask.remove(.titled)
         self.styleMask.insert(.fullSizeContentView)
+        self.styleMask.remove(.resizable)
 
         self.titleVisibility = .hidden
         self.isMovableByWindowBackground = true
@@ -60,6 +61,9 @@ class MainFlutterWindow: NSWindow {
             case "moveToActiveDisplay":
                 self.moveToActiveDisplay()
                 result(nil)
+            case "hideWindow":
+                self.close()
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -94,7 +98,7 @@ class MainFlutterWindow: NSWindow {
         close()
     }
 
-    override func cancelOperation(_ sender: Any?) {
-        close()
-    }
+    // Esc is handled in Flutter (PopupHost): it closes an open popup, or
+    // calls hideWindow when there isn't one
+    override func cancelOperation(_ sender: Any?) {}
 }

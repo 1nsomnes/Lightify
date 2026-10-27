@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -6,8 +6,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
 
   void setIsAuthenticated(bool value) {
+    if (_isAuthenticated == value) return;
     _isAuthenticated = value;
     notifyListeners();
   }
-
 }

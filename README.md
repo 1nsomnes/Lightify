@@ -45,19 +45,27 @@ right now.
 | KeyBind | Action |
 | - | - |
 | Meta + Shift + S | Open/Close lightify (works anywhere on your Mac) |
-| Esc | Close Lightify |
+| Esc | Close the current pop up page, or Lightify if none is open |
 | Space | Play/Pause |
 | H | Previous Song |
 | L | Next Song |
 | S | Change shuffle mode |
 | R | Change repeat mode | 
 | TAB | Navigate to search bar (when already not open) |
-| T | Switch to track search mode |
-| A | Switch to album search mode |
-| P | Switch to playlist search mode |
+| T | Show/hide tracks in the results |
+| A | Show/hide albums in the results |
+| P | Show/hide playlists in the results |
 | M | Switch to "my catalog" | 
 | Enter | Run search or play selected song |
 | Q | Queue selected song |
+| Shift + Q | Open the queue |
+| Shift + C | Select the currently playing song |
+| Shift + T | Move playback from another device to Lightify |
+| Shift + H / Shift + L | Seek back / forward (hold to keep seeking; step in settings) |
+| Shift + S | Open settings (J/K select, H/L adjust, R reset) |
+| Shift + A | Open the selected item's album (tracks/albums) |
+| Shift + O | Open the selected playlist or album |
+| Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |
 | Ctrl + R | Restart |

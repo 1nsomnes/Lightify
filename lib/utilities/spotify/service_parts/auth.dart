@@ -23,9 +23,8 @@ extension Auth on SpotifyService {
   }
 
   static Uint8List sha256(String data) {
-    final bytes = utf8.encode(data);
-    final digest = crypto.sha256.convert(bytes);
-    return Uint8List.fromList(digest.bytes);
+    final bytes = crypto.sha256.convert(utf8.encode(data)).bytes;
+    return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
 
   Future<AuthError> isValidToken(String token) async {
@@ -39,9 +38,17 @@ extension Auth on SpotifyService {
     return AuthError.unknown;
   }
 
-  Future<bool> attemptRefresh() async {
-    final refreshResponse = await requestTokenFromRefresh();
+  // Spotify rotates refresh tokens, so concurrent refreshes with the same
+  // token would invalidate each other. Share a single in-flight refresh.
+  Future<bool> attemptRefresh() {
+    return _refreshInFlight ??= _doRefresh().whenComplete(() {
+      _refreshInFlight = null;
+    });
+  }
+
+  Future<bool> _doRefresh() async {
     debugPrint("Attempting to refresh tokens");
+    final refreshResponse = await requestTokenFromRefresh();
 
     if (refreshResponse == null) {
       _authProvider.setIsAuthenticated(false);
@@ -49,67 +56,60 @@ extension Auth on SpotifyService {
       return false;
     }
     final String newToken = refreshResponse["access_token"];
-    await _storage.write(key: "token", value: newToken);
-    _authProvider.setIsAuthenticated(true);
     setToken(newToken);
-    if (updatePlayerToken != null) updatePlayerToken!(_token);
+    final writes = [_storage.write(key: "token", value: newToken)];
 
     if (refreshResponse.containsKey("refresh_token")) {
-      String newRefreshToken = refreshResponse["refresh_token"];
-      await _storage.write(key: "refreshToken", value: _refreshToken);
-      _refreshToken = newRefreshToken;
+      _refreshToken = refreshResponse["refresh_token"];
+      writes.add(_storage.write(key: "refresh_token", value: _refreshToken));
     }
+    await Future.wait(writes);
+
+    _authProvider.setIsAuthenticated(true);
+    if (updatePlayerToken != null) updatePlayerToken!(_token);
 
     return true;
   }
 
-  Future<Map<String, dynamic>?> requestTokenFromRefresh() async {
-    final uri = Uri.parse('https://accounts.spotify.com/api/token');
+  static final Uri _tokenUri = Uri.parse(
+    'https://accounts.spotify.com/api/token',
+  );
 
+  Future<Map<String, dynamic>?> _postToken(
+    Map<String, String> body,
+    String failureLabel,
+  ) async {
     final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: {
-        'refresh_token': _refreshToken,
-        'grant_type': 'refresh_token',
-        'client_id': _clientId,
-      },
+      _tokenUri,
+      headers: const {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body,
     );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> json = jsonDecode(response.body);
-      return json;
-    }
-    debugPrint("failed refresh");
+    if (response.statusCode == 200) return jsonDecode(response.body);
 
+    debugPrint("$failureLabel: ${response.statusCode} ${response.body}");
     return null;
+  }
+
+  Future<Map<String, dynamic>?> requestTokenFromRefresh() {
+    return _postToken({
+      'refresh_token': _refreshToken,
+      'grant_type': 'refresh_token',
+      'client_id': _clientId,
+    }, "failed refresh");
   }
 
   Future<Map<String, dynamic>> pkceRequestToken(
     String code,
     String codeVerifier,
   ) async {
-    final uri = Uri.parse('https://accounts.spotify.com/api/token');
-
-    final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'code': code,
-        'redirect_uri': 'http://127.0.0.1:3434',
-        'grant_type': 'authorization_code',
-        'client_id': _clientId,
-        'code_verifier': codeVerifier,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> json = jsonDecode(response.body);
-      return json;
-    }
-
-    return {"Error": "Bad response"};
+    return await _postToken({
+          'code': code,
+          'redirect_uri': 'http://127.0.0.1:3434',
+          'grant_type': 'authorization_code',
+          'client_id': _clientId,
+          'code_verifier': codeVerifier,
+        }, "token exchange failed") ??
+        {"Error": "Bad response"};
   }
 }

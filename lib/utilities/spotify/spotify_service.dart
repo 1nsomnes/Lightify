@@ -13,11 +13,17 @@ import 'package:lightify/utilities/spotify/spotify_http_client.dart';
 
 part 'service_parts/player.dart';
 part 'service_parts/auth.dart';
+part 'service_parts/browse.dart';
 
 class SpotifyService {
+  // the web player's device name (set in assets/player.html), whatever the
+  // user's Spotify app is called
+  static const playerName = "Lightify";
+
   final FlutterSecureStorage _storage;
   final AuthProvider _authProvider;
-  late Function? updatePlayerToken;
+  // set by HomePage once the web player exists; a refresh can happen before that
+  Function? updatePlayerToken;
   late final SpotifyHttpClient http;
   late final Dio dio;
 
@@ -30,42 +36,58 @@ class SpotifyService {
   }) : _storage = storage,
        _authProvider = authProvider {
     http = SpotifyHttpClient(
-      onUnauthorized: () async {
-        debugPrint("HTTP Client had a problem with the token");
-      },
+      onUnauthorized: () =>
+          debugPrint("HTTP Client had a problem with the token"),
       spotifyService: this,
     );
 
-    dio = Dio(
-      BaseOptions(
-        baseUrl: "https://api.spotify.com/v1/",
-        headers: {'Authorization': 'Bearer $_token'},
-      ),
-    );
+    dio = Dio(BaseOptions(baseUrl: "https://api.spotify.com/v1/"));
 
-    dio.interceptors.addAll([
-      //LogInterceptor(requestBody: true, responseBody: true),
+    dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
-          var opts = error.requestOptions;
-          if (error.response?.statusCode == 401 &&
+          final opts = error.requestOptions;
+          final response = error.response;
+          final statusCode = response?.statusCode;
+          debugPrint(
+            "Spotify API error $statusCode on ${opts.path}: ${response?.data}",
+          );
+          if (statusCode == 401 &&
               opts.extra["__retry"] != true &&
               await attemptRefresh()) {
             opts.headers["Authorization"] = "Bearer $_token";
             opts.extra["__retry"] = true;
-            final cloneReq = await dio.fetch(opts);
-            return handler.resolve(cloneReq);
+            try {
+              return handler.resolve(await dio.fetch(opts));
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
+          }
+          // a 404 on a call naming our device means its id went stale
+          if (statusCode == 404 &&
+              opts.queryParameters.containsKey("device_id") &&
+              opts.extra["__deviceRetry"] != true &&
+              await refreshDeviceId()) {
+            opts.queryParameters["device_id"] = _deviceId;
+            opts.extra["__deviceRetry"] = true;
+            try {
+              return handler.resolve(await dio.fetch(opts));
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
           }
           return handler.next(error);
         },
       ),
-    ]);
+    );
   }
 
   String _token = "";
   String _refreshToken = "";
   String _clientId = "";
   String _deviceId = "";
+  String? _userId;
+  Future<bool>? _refreshInFlight;
 
   String get getToken => _token;
   String get getRefreshToken => _refreshToken;

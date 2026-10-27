@@ -5,6 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lightify/pages/initialization_page.dart';
 import 'package:lightify/providers/auth_provider.dart';
+import 'package:lightify/utilities/settings.dart';
+import 'package:lightify/utilities/update_check.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -20,25 +22,28 @@ class BlurWindowListener with WindowListener {
 }
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   // ensure these all started so any service that may need them will be able to
   final getIt = GetIt.instance;
-  AuthProvider authProvider = AuthProvider();
-  FlutterSecureStorage storage = FlutterSecureStorage();
-  getIt.registerLazySingleton(() => authProvider);
-  getIt.registerLazySingleton(() => storage);
+  final authProvider = AuthProvider();
+  const storage = FlutterSecureStorage();
+  getIt.registerSingleton<AuthProvider>(authProvider);
+  getIt.registerSingleton<FlutterSecureStorage>(storage);
 
   getIt.registerLazySingleton<SpotifyService>(
-    () => SpotifyService(authProvider: authProvider,storage: storage),
+    () => SpotifyService(authProvider: authProvider, storage: storage),
   );
 
-
-  await hotKeyManager.unregisterAll();
-  await windowManager.ensureInitialized();
-
-  await windowManager.setSkipTaskbar(true);
+  await Future.wait([
+    hotKeyManager.unregisterAll(),
+    Settings.load(),
+    windowManager.ensureInitialized().then(
+      (_) => windowManager.setSkipTaskbar(true),
+    ),
+  ]);
+  // in the background, so the settings page has the result ready
+  UpdateCheck.latest();
 
   if (Platform.isMacOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
@@ -46,13 +51,9 @@ void main() async {
 
   windowManager.addListener(BlurWindowListener());
 
-
   // RUN THE APPLICATION
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => authProvider,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider.value(value: authProvider, child: const MyApp()),
   );
 }
 
@@ -62,6 +63,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return InitializationPage();
+    return const InitializationPage();
   }
 }

@@ -6,34 +6,24 @@
 
   <script>
 
+    const postToFlutter = (func, body) => {
+      FlutterHost.postMessage(JSON.stringify(body === undefined ? {func} : {func, body}));
+    }
+
     const installMediaHandlers = () => {
       if ('mediaSession' in navigator) {
-        navigator.mediaSession.setActionHandler('play', () => togglePlayback());       // play/pause already working
+        navigator.mediaSession.setActionHandler('play', () => togglePlayback());
         navigator.mediaSession.setActionHandler('pause', () => togglePlayback());
-        navigator.mediaSession.setActionHandler('previoustrack', () => previous()); // ← your missing handler :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
+        navigator.mediaSession.setActionHandler('previoustrack', () => previous());
         navigator.mediaSession.setActionHandler('nexttrack', () => next());
       }
-
     }
 
     function registerListeners(player) {
-      player.removeListener('ready')
-      player.removeListener('not_ready')
-      player.removeListener('initialization_error')
-      player.removeListener('authentication_error')
-      player.removeListener('player_state_changed')
-
       player.addListener('ready', ({device_id}) => {
         console.log("ready with id " + device_id)
-        return_object = {
-          func: "setDeviceId",
-          body: {
-            "device_id": device_id
-          }
-        }
-
         window.spotifyPlayer = player;
-        FlutterHost.postMessage(JSON.stringify(return_object));
+        postToFlutter("setDeviceId", {"device_id": device_id});
 
         installMediaHandlers();
       });
@@ -46,60 +36,36 @@
       });
 
       player.addListener('authentication_error', ({message}) => {
-        console.log("Authentication Failed");
-        return_object = {
-          func: "authenticationFailed"
-        };
-        FlutterHost.postMessage(JSON.stringify(return_object));
+        console.log("Authentication Failed: " + message);
+        postToFlutter("authenticationFailed");
       });
 
       player.addListener('account_error', ({message}) => {
-        console.error(message);
+        console.error("Account error: " + message);
       });
 
-      player.addListener('player_state_changed', ({
-        position,
-        duration,
-        track_window: {current_track}
-      }) => {
+      player.addListener('player_state_changed', state => {
+        if (!state) {
+          console.log("no state")
+          return;
+        }
 
         installMediaHandlers();
 
         //TODO: possibly remove this update
-        current_track["position_ms"] = position;
-        return_object = {
-          func: "updateData",
-          body: current_track
-        };
-
-        FlutterHost.postMessage(JSON.stringify(return_object));
-
-        window.spotifyPlayer.getCurrentState().then(state => {
-          if (!state) {
-            console.log("no state")
-            return;
-          }
-
-          return_object = {
-            func: "updateDataFromPlayer",
-            body: state
-          };
-
-          FlutterHost.postMessage(JSON.stringify(return_object));
-        })
-
+        const current_track = state.track_window.current_track;
+        current_track["position_ms"] = state.position;
+        postToFlutter("updateData", current_track);
+        postToFlutter("updateDataFromPlayer", state);
       });
-      
-
     }
 
 
     window.onSpotifyWebPlaybackSDKReady = () => {
       window.token = '{token}';
 
-      console.log("current token = " + token)
       const player = new Spotify.Player({
-        name: 'Lightify',
+        name: '{name}',
         getOAuthToken: cb => {cb(window.token);},
         volume: 1
       });
@@ -114,50 +80,42 @@
       window.spotifyPlayer.togglePlay();
     }
 
+    function restartOrSkip(shouldRestart, skip) {
+      const player = window.spotifyPlayer;
+      player.getCurrentState().then(state => {
+        if (!state) console.log("no state")
+
+        if (state && shouldRestart(state)) {
+          player.seek(0)
+        } else {
+          skip(player);
+        }
+      })
+    }
+
     function next() {
       console.log("Skipping song")
-      window.spotifyPlayer.getCurrentState().then(state => {
-        if (!state) {
-          window.spotifyPlayer.nextTrack();
-          console.log("no state")
-          return;
-        }
-
-        if (state.repeat_mode == 2) {
-          window.spotifyPlayer.seek(0)
-        } else {
-          window.spotifyPlayer.nextTrack();
-        }
-
-      })
-
+      restartOrSkip(state => state.repeat_mode == 2, player => player.nextTrack());
     }
 
     function previous() {
-      window.spotifyPlayer.getCurrentState().then(state => {
-        if (!state) {
-          window.spotifyPlayer.previousTrack();
-          console.log("no state")
-          return;
-        }
+      restartOrSkip(
+        state => state.position >= 2000 || state.repeat_mode == 2,
+        player => player.previousTrack()
+      );
+    }
 
-        if (state.position >= 2000 || state.repeat_mode == 2) {
-          window.spotifyPlayer.seek(0)
-        } else {
-          window.spotifyPlayer.previousTrack();
-        }
-
-      })
+    function seek(ms) {
+      window.spotifyPlayer.seek(ms);
     }
 
     function reconnect() {
       console.log("Reconnect");
       window.spotifyPlayer.connect();
-      registerListeners(window.spotifyPlayer);
     }
 
     function setToken(token) {
-      console.log("Token updated to " + token);
+      console.log("Token updated");
       window.token = token;
     }
 
