@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import LightifyDemo from "./demo/LightifyDemo";
 
-const DOWNLOAD_URL = "https://github.com/1nsomnes/Lightify/releases/latest";
+// always the newest release's DMG
+const DOWNLOAD_URL = "https://github.com/1nsomnes/Lightify/releases/latest/download/Lightify.dmg";
 const REPO_URL = "https://github.com/1nsomnes/Lightify";
 
 // The stroke from the Lightify logo (brand_assets/lightify_icon.svg)
