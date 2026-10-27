@@ -68,32 +68,16 @@ Lightify is a real Spotify player, not a remote: music plays from Lightify itsel
 
 
 ## Versions, Change Logs, Future Implementations
-✅ = this version is published <br>
-❌ = this version is not published
 
 <details><summary> <h3>Future features</h3> </summary>
 
-- [ ] Settings page
 - [ ] Auto load next options when bottom of list is reached
 - [ ] Auto size window when searching similar to spotlight
 - [ ] Theme loader
-- [ ] Consistency on tab click
-
-</details>
-<details><summary> <h3>Features for v0.1 ❌</h3> </summary>
-
-- [x] ~Add a section to input client secrets and ids easily~
-- [x] ~Add "my catalog" for tracks and albums~
-- [x] ~Enable search in "my catalog"~
-- [ ] Make the GUI buttons work (currently only keybinds work)
 - [ ] Add a like button for songs
-- [x] ~Make sure repeat mode works properly~
-- [x] ~Add transfer playback shortcut~
-- [ ] Create an installer 
 
-</details>
 
-<h3> Start of log (08/01/2025) </h3>
+
 
 ## Contributing
 Contributions are welcome and encouraged. 
