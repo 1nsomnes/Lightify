@@ -26,20 +26,15 @@
 6. [License](LICENSE)
 
 ## Installation
-Currently in early stage development, if and when an alpha version is realeased an installer and website will be created.
-For the time being, you must install [Flutter](https://flutter.dev/) and run 
+1. Download the `.dmg` from the [latest release](https://github.com/1nsomnes/Lightify/releases/latest).
+2. Open it and drag Lightify into your Applications folder.
+3. Create an app on the [Spotify developer dashboard](https://developer.spotify.com/dashboard) with the redirect URI `http://127.0.0.1:3434` and the Web API and Web Playback SDK enabled.
+4. Launch Lightify, paste in your app's client ID, and log in. After that, Meta + Shift + S opens and closes it from anywhere.
 
-```flutter build macos```
-
-After this you will be able to find Lightify through Spotlight or inside the releases 
-folder for MacOS in the project directory. 
-
-Additionally you will need to [create a Spoty client](https://developer.spotify.com/) and input the client ID when you run the application. 
+Why your own client ID? Spotify limits each developer app to a small number of users, so one shared ID can't work for everyone. Playback requires Spotify Premium.
 
 ## How does it work?
-Once you have installed it, it's a simple matter of logging in. This is **NOT** a remote, you do not need to have an instance of Spotify
-running to make this work. You will be able to easily search for, queue, and play music. Please note the Keybinds below for usage, particularly because none of the buttons work
-right now. 
+Lightify is a real Spotify player, not a remote: music plays from Lightify itself, so you don't need the Spotify app open. Press Meta + Shift + S anywhere to bring it up, search, play or queue something, and it gets out of your way when you click elsewhere. It's built to be driven from the keyboard, see the keybinds below. Shift + T moves playback over from another device.
 
 ## Keybinds
 | KeyBind | Action |
@@ -112,4 +107,4 @@ This is a small project so if anyone sends in a review I will probably code revi
 ## License
 This software is distributed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). You are granted permission to copy, modify, and personalize this code for your own non-commercial projects and experiments. However, any use of this work for commercial purposes—including selling, licensing, or incorporating it into products or services offered for profit—is expressly prohibited without obtaining a separate license.
 
-© 2025 Cedric Claessens
+© 2026 Cedric Claessens
