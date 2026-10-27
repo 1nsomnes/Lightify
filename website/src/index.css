@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --color-frost: #e8eaef;
+  --color-frost-deep: #dcdfe6;
+  --color-ink: #16171c;
+  --color-slate: #565a66;
+  --color-mist: #c4c8d2;
+  --color-aqua: #b9dfe4;
+  --color-lilac: #d6d0ea;
+  --color-play: #4fc46e;
+
+  --font-display: "Young Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* layered, ink-tinted depth */
+  --shadow-elevated: 0 1px 1px rgb(22 23 40 / 0.04), 0 4px 10px -2px rgb(22 23 40 / 0.06),
+    0 12px 24px -8px rgb(22 23 40 / 0.08);
+  --shadow-floating: 0 2px 4px rgb(22 23 40 / 0.06), 0 24px 48px -16px rgb(22 23 40 / 0.28),
+    0 60px 120px -40px rgb(40 60 90 / 0.45);
+}
+
+html {
+  background: var(--color-frost);
+}
+
+body {
+  margin: 0;
+  background: var(--color-frost);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.backdrop {
+  background:
+    radial-gradient(60% 50% at 18% 8%, rgb(185 223 228 / 0.85), transparent 70%),
+    radial-gradient(45% 40% at 88% 18%, rgb(214 208 234 / 0.9), transparent 70%),
+    radial-gradient(70% 45% at 50% 105%, rgb(220 223 230 / 1), transparent 70%),
+    var(--color-frost);
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
+
+/* Keycaps: light frosted keys that physically depress */
+.cap {
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(180deg, #fbfbfd, #eef0f4);
+  border: 1px solid rgb(22 23 28 / 0.09);
+  box-shadow:
+    inset 0 -2px 0 rgb(22 23 40 / 0.08),
+    0 1px 1px rgb(22 23 40 / 0.06),
+    0 6px 14px -6px rgb(22 23 40 / 0.18);
+  transition:
+    transform 260ms var(--ease-spring),
+    opacity 200ms ease;
+  position: relative;
+}
+.cap::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: rgb(79 196 110 / 0.22);
+  box-shadow: inset 0 0 0 1px rgb(79 196 110 / 0.7);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+.cap[data-down="true"] {
+  transform: translateY(2px) scale(0.97);
+}
+.cap[data-down="true"]::after {
+  opacity: 1;
+}
+
+.panel-in {
+  animation: summon 900ms var(--ease-settle) both;
+}
+@keyframes summon {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-in {
+    animation: none;
+  }
+  .cap,
+  .cap::after {
+    transition: none;
+  }
+}
+
+/* let the logo stroke dissolve into the page at both ends */
+.stroke-fade {
+  mask-image: linear-gradient(90deg, transparent 2%, #000 22%, #000 78%, transparent 98%);
+}
