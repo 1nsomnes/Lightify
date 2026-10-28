@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Lightify",
+    "description": "A Spotify client that works like Spotlight.",
+    "image": "/projects/lightify.png",
+    "link": "https://github.com/1nsomnes/Lightify",
+    "tags": ["Flutter", "Swift", "Dart", "Spotify API"]
+  },
+  {
+    "title": "YouTube Transcriber",
+    "description": "Paste a YouTube link and get a transcript from OpenAI's Whisper model.",
+    "image": "/projects/transcriber.png",
+    "link": "https://github.com/1nsomnes/TranscriptionApp",
+    "tags": ["Python", "Flask", "Vue", "JavaScript"]
+  },
+  {
+    "title": "User Service Template",
+    "description": "A complete user service with authorization, built on Flask and MongoDB.",
+    "image": "/projects/user-service-template.png",
+    "link": "https://github.com/1nsomnes/User-Service-Template",
+    "tags": ["Python", "Flask", "Docker", "Microservices"]
+  },
+  {
+    "title": "Three Body Simulation",
+    "description": "One of the most famous chaotic systems, simulated and traced in several stable configurations.",
+    "image": "/projects/threebody.png",
+    "link": "https://github.com/InsomnesTutorials/ThreeBodyProblemSimulation",
+    "tags": ["Unity", "C#", "Simulation"]
+  },
+  {
+    "title": "Flow Fields",
+    "description": "Flowing imagery from the simple principles of differential equations.",
+    "image": "/projects/flow.png",
+    "link": "https://github.com/1nsomnes/FlowFields",
+    "tags": ["Unity", "C#", "Math"]
+  },
+  {
+    "title": "Sierpiński's Triangle",
+    "description": "Order emerging out of chaos.",
+    "image": "/projects/striangle.png",
+    "link": "https://github.com/1nsomnes/SierpinskisTriangle",
+    "tags": ["Unity", "C#", "Math"]
+  },
+  {
+    "title": "Minimal Addiction Beater",
+    "description": "A minimal mobile app that tracks how long you've beaten an addiction.",
+    "image": "/projects/min_add_beater.png",
+    "link": "https://github.com/1nsomnes/minimal_addiction_beater",
+    "tags": ["Flutter", "Dart", "Isar"]
+  },
+  {
+    "title": "AirFoil Generator",
+    "description": "Generates printable airfoils programmatically from NACA specs.",
+    "image": "/projects/airfoil.png",
+    "tags": ["Python", "CAD", "Engineering"]
+  }
+]

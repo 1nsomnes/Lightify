@@ -1,0 +1,61 @@
+[
+  {
+    "name": "Amazon Web Services",
+    "logo": "Amazon_Web_Services_Logo.svg",
+    "roles": [
+      {
+        "title": "Software Development Engineer Intern",
+        "start": "2026-05",
+        "end": "2026-08",
+        "location": "Seattle, WA",
+        "description": "Package tracking on Amazon Linux."
+      }
+    ]
+  },
+  {
+    "name": "GoDaddy",
+    "logo": "GoDaddy-Logo.wine.svg",
+    "roles": [
+      {
+        "title": "Software Engineer",
+        "start": "2025-08",
+        "end": "2025-12",
+        "location": "Tempe, AZ",
+        "description": "Built the first agentic contract submission tool with executive stakeholders."
+      },
+      {
+        "title": "Software Engineer Intern",
+        "start": "2025-06",
+        "end": "2025-08",
+        "location": "Kirkland, WA",
+        "description": "Built cross-team data pipelines for automated observability and security reporting."
+      }
+    ]
+  },
+  {
+    "name": "DevilQuant",
+    "logo": "DQ.png",
+    "logoFill": true,
+    "roles": [
+      {
+        "title": "Founder & President",
+        "start": "2025-01",
+        "location": "Remote",
+        "description": "Founded the first quant club at ASU."
+      }
+    ]
+  },
+  {
+    "name": "GeoWhiz",
+    "logo": "geowhiz.png",
+    "roles": [
+      {
+        "title": "Software Engineer",
+        "start": "2023-03",
+        "end": "2025-02",
+        "location": "Remote",
+        "description": "Created the first virtual customer experience for Pensacola Beach resorts."
+      }
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "kind": "email",
+    "label": "Email",
+    "encodedEmail": "Y29udGFjdEBjZWRyaWNjbGFlc3NlbnMuY29t"
+  },
+  {
+    "kind": "x",
+    "label": "X",
+    "handle": "@claecedric",
+    "url": "https://x.com/claecedric"
+  },
+  {
+    "kind": "linkedin",
+    "label": "LinkedIn",
+    "handle": "cedric-cl",
+    "url": "https://www.linkedin.com/in/cedric-cl"
+  }
+]

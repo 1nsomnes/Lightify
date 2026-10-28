@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #ffffff;
+  --color-surface: #f5f6f8;
+  --color-ink: #15171c;
+  --color-ink-2: #4a505c;
+  --color-ink-3: #6b717c;
+  --color-rule: #e6e8ec;
+}
+
+html {
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@layer components {
+  /*
+   * The chamfer echoes the "C" mark: the two left corners are cut at 45°.
+   * Override the cut size per element with a [--cut:…] utility; it defaults to 22% of the box.
+   */
+  .chamfer {
+    clip-path: polygon(
+      var(--cut, 22%) 0,
+      100% 0,
+      100% 100%,
+      var(--cut, 22%) 100%,
+      0 calc(100% - var(--cut, 22%)),
+      0 var(--cut, 22%)
+    );
+  }
+
+  /* The one place the page uses elevation: logo tiles. drop-shadow follows the clipped shape. */
+  .lifted {
+    filter: drop-shadow(0 1px 1px rgb(21 23 28 / 0.08)) drop-shadow(0 6px 12px rgb(21 23 28 / 0.1));
+  }
+}
