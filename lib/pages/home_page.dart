@@ -220,10 +220,8 @@ class _HomePageState extends State<HomePage> {
 
   void _toggleShuffle() {
     setState(() {
-      playbackState.shuffleState =
-          playbackState.shuffleState == ShuffleState.shuffleOff
-          ? ShuffleState.shuffleOn
-          : ShuffleState.shuffleOff;
+      // Smart Shuffle turns off too: the API can't switch it on
+      playbackState.shuffleState = playbackState.shuffleState.toggled;
     });
     spotifyService.setShuffleMode(playbackState.shuffleState);
   }

@@ -46,7 +46,8 @@ class NowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shuffleOn = state.shuffleState == ShuffleState.shuffleOn;
+    final shuffleOn = state.shuffleState.isOn;
+    final smartShuffle = state.shuffleState == ShuffleState.smartShuffle;
     final repeat = state.repeatState;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
@@ -99,8 +100,11 @@ class NowPlaying extends StatelessWidget {
                     const SizedBox(width: 12),
                     _ControlButton(
                       icon: Icons.shuffle,
-                      tooltip: "Shuffle (S)",
+                      tooltip: smartShuffle
+                          ? "Smart Shuffle (S turns it off)"
+                          : "Shuffle (S)",
                       active: shuffleOn,
+                      badge: smartShuffle ? Icons.auto_awesome : null,
                       onPressed: onShuffle,
                     ),
                     _ControlButton(
@@ -188,10 +192,13 @@ class _ControlButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
     this.active,
+    this.badge,
     this.size = 20,
   });
 
   final IconData icon;
+  // a small mark in the corner, e.g. the sparkle for Smart Shuffle
+  final IconData? badge;
   final String tooltip;
   final VoidCallback onPressed;
   // null for buttons that aren't toggles
@@ -220,6 +227,12 @@ class _ControlButton extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Icon(icon, size: size, color: color),
+              if (badge != null)
+                Positioned(
+                  top: 5,
+                  right: 4,
+                  child: Icon(badge, size: 10, color: color),
+                ),
               if (active == true)
                 const Positioned(
                   bottom: 3,

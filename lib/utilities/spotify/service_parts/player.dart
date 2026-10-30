@@ -44,9 +44,7 @@ extension Player on SpotifyService {
       _playbackStateCtrl.add(
         PlaybackState(
           playing: json["is_playing"] == true,
-          shuffleState: json["shuffle_state"] == true
-              ? ShuffleState.shuffleOn
-              : ShuffleState.shuffleOff,
+          shuffleState: ShuffleState.fromApi(json),
           repeatState: switch (json["repeat_state"]) {
             "off" => RepeatState.repeatOff,
             "context" => RepeatState.repeatContext,
@@ -60,12 +58,14 @@ extension Player on SpotifyService {
   }
 
   void processStateFromPlayer(Map<String, dynamic> json) {
+    final shuffleMode = json["shuffle_mode"];
+    if (shuffleMode is! int || shuffleMode > 2) {
+      debugPrint("unexpected shuffle_mode from the player: $shuffleMode");
+    }
     _playbackStateCtrl.add(
       PlaybackState(
         playing: json["paused"] == false,
-        shuffleState: json["shuffle_mode"] == 1
-            ? ShuffleState.shuffleOn
-            : ShuffleState.shuffleOff,
+        shuffleState: ShuffleState.fromPlayer(shuffleMode),
         repeatState: switch (json["repeat_mode"]) {
           0 => RepeatState.repeatOff,
           1 => RepeatState.repeatContext,
