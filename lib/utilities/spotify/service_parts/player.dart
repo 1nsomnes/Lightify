@@ -216,12 +216,19 @@ extension Player on SpotifyService {
     );
   }
 
-  Future<Response> searchSpotify(String query, int limit, int offset) {
+  /// [limit] is per type (at most 10 for apps in Spotify's development
+  /// mode); [types] is a comma-separated list such as "track,album".
+  Future<Response> searchSpotify(
+    String query,
+    int limit,
+    int offset, {
+    String types = "track,album,playlist",
+  }) {
     return dio.get(
       "search",
       queryParameters: {
         'q': query,
-        'type': 'track,album,playlist',
+        'type': types,
         'limit': limit,
         'offset': offset,
       },

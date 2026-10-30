@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,9 +15,11 @@ import 'package:lightify/utilities/settings.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/search_list.dart';
-import 'package:lightify/utilities/spotify/search_result.dart';
+import 'package:lightify/utilities/spotify/search_pager.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+export 'package:lightify/utilities/spotify/search_pager.dart' show SearchKind;
 
 class Search extends StatefulWidget {
   const Search({
@@ -54,8 +57,6 @@ class Search extends StatefulWidget {
   State<Search> createState() => _SearchState();
 }
 
-enum SearchKind { track, album, playlist }
-
 const _searchBorder = OutlineInputBorder(
   borderRadius: BorderRadius.all(Radius.circular(999)),
   borderSide: BorderSide(color: Colors.white24),
@@ -78,11 +79,25 @@ class _SearchState extends State<Search> {
   String _queryBeforeSearch = "";
   Timer? _debounce;
 
-  // TODO: maybe add loading when searching?
-  // bool _isLoading = false;
-  final SearchList _tracks = SearchList();
-  final SearchList _playlists = SearchList();
-  final SearchList _albums = SearchList();
+  // Spotify search results, loaded 10 per kind at a time; the next page loads
+  // as the selection (or the scroll position) nears the bottom
+  late final SearchPager _pager = SearchPager(
+    fetch: (query, kinds, offset) async => (await spotifyService.searchSpotify(
+      query,
+      SearchPager.pageSize,
+      offset,
+      types: SearchPager.typeParameter(kinds),
+    )).data,
+    onChanged: () {
+      if (mounted) setState(_updateShown);
+    },
+  );
+  SearchList get _tracks => _pager.lists[SearchKind.track]!;
+  SearchList get _albums => _pager.lists[SearchKind.album]!;
+  SearchList get _playlists => _pager.lists[SearchKind.playlist]!;
+  final ItemPositionsListener _positions = ItemPositionsListener.create();
+  // how close to the bottom (in rows) the next page starts loading
+  static const _loadMoreWithin = 5;
 
   // personal saved stuff.
   final SearchList _myTracks = SearchList();
@@ -135,6 +150,13 @@ class _SearchState extends State<Search> {
     });
 
     spotifyService = GetIt.instance.get<SpotifyService>();
+    // scrolling with the mouse or trackpad loads more too
+    _positions.itemPositions.addListener(() {
+      final positions = _positions.itemPositions.value;
+      if (positions.isEmpty) return;
+      final last = positions.map((p) => p.index).reduce(max);
+      _maybeLoadMore(last);
+    });
     loadPersonalCatalog(
       spotifyService.getLikedAlbums,
       ProcessResponse.processAlbumsJson,
@@ -183,6 +205,7 @@ class _SearchState extends State<Search> {
     setState(() {
       list.selected = (list.selected + delta).clamp(0, list.items.length - 1);
     });
+    _maybeLoadMore(list.selected);
     _scroll.scrollTo(
       index: list.selected,
       duration: scrollDuration,
@@ -320,6 +343,14 @@ class _SearchState extends State<Search> {
         _ => null,
       };
 
+  // Loads the next page of search results once [index] (the selection, or
+  // the last row on screen) is near the bottom. Your library is loaded whole,
+  // so this is only for Spotify search.
+  void _maybeLoadMore(int index) {
+    if (mine || _textController.text.trim().isEmpty) return;
+    if (index >= _shown.items.length - _loadMoreWithin) _pager.loadMore(kinds);
+  }
+
   // Rebuilds the on-screen list (call inside setState). With [keepSelection]
   // the same item stays selected when it's still there; otherwise the
   // selection goes back to the top.
@@ -357,6 +388,8 @@ class _SearchState extends State<Search> {
       if (!kinds.remove(kind)) kinds.add(kind);
       _updateShown();
     });
+    // a kind turned on mid-search needs its first page
+    if (kinds.contains(kind)) _pager.loadMore(kinds);
   }
 
   void _toggleMine() {
@@ -364,12 +397,6 @@ class _SearchState extends State<Search> {
       mine = !mine;
       _updateShown();
     });
-  }
-
-  void updateAllLists(Function(SearchList) action) {
-    action(_albums);
-    action(_tracks);
-    action(_playlists);
   }
 
   void playSelected(String? ctxUri) {
@@ -399,13 +426,10 @@ class _SearchState extends State<Search> {
     }
   }
 
-  void _populateResults(String query) async {
+  void _populateResults(String query) {
     final lowerQuery = query.toLowerCase();
+    _pager.start(query, kinds);
     setState(() {
-      updateAllLists((list) {
-        list.items.clear();
-        list.selected = 0;
-      });
       for (final (scopedList, fullList) in [
         (_myTracks, _myFullTracks),
         (_myAlbums, _myFullAlbums),
@@ -422,19 +446,6 @@ class _SearchState extends State<Search> {
       }
       _updateShown(keepSelection: false);
     });
-
-    var response = await spotifyService.searchSpotify(query, 30, 0);
-    // drop stale responses: the query changed (or widget went away) meanwhile.
-    if (!mounted || query != _textController.text.trim()) return;
-    if (response.statusCode == 200) {
-      SearchResult result = ProcessResponse.parseSearchResults(response.data);
-      setState(() {
-        _albums.items = result.albums;
-        _playlists.items = result.playlists;
-        _tracks.items = result.tracks;
-        _updateShown();
-      });
-    }
   }
 
   void _search() {
@@ -443,10 +454,8 @@ class _SearchState extends State<Search> {
     if (query.isNotEmpty) {
       _populateResults(query);
     } else {
-      setState(() {
-        updateAllLists((list) => list.items.clear());
-        _updateShown();
-      });
+      _pager.start("", kinds);
+      setState(_updateShown);
     }
   }
 
@@ -532,6 +541,7 @@ class _SearchState extends State<Search> {
                 : ScrollablePositionedList.builder(
                     physics: const ClampingScrollPhysics(),
                     itemScrollController: _scroll,
+                    itemPositionsListener: _positions,
                     itemCount: relevantList.items.length,
                     itemBuilder: (context, i) => ItemTile(
                       item: relevantList.items[i],
