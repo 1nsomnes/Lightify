@@ -12,6 +12,7 @@ import 'package:lightify/utilities/spotify/playback_state.dart';
 import 'package:lightify/utilities/spotify/process_response.dart';
 import 'package:lightify/utilities/spotify/search_item.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
+import 'package:lightify/utilities/status_menu.dart';
 import 'package:lightify/utilities/window_channel.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -41,6 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    StatusMenu.playback = null;
     _playbackChangeSubscription.cancel();
     _nowPlayingSelected.dispose();
     _controller.runJavaScript('window.stop();');
@@ -109,6 +111,11 @@ class _HomePageState extends State<HomePage> {
       );
 
     loadHtmlFromAssets();
+    StatusMenu.playback = StatusMenuPlayback(
+      togglePlay: _togglePlay,
+      next: _next,
+      previous: _prev,
+    );
 
     //TODO: get media keys working...
     //LoadHotKeys.loadPlayerhotKeys(_next, _prev, _togglePlay);
@@ -258,6 +265,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // every change to the song or play state rebuilds, so the menu bar menu
+    // follows from here (unchanged values aren't re-sent)
+    StatusMenu.update(
+      _nowPlayingItem == null
+          ? (song: "", artist: "", playing: false)
+          : (song: song, artist: artist, playing: playbackState.playing),
+    );
     return PopupHost(
       onEscape: () => windowChannel.invokeMethod("hideWindow"),
       child: Center(

@@ -7,6 +7,7 @@ import 'package:lightify/providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lightify/providers/theme/darkTheme.dart';
 import 'package:lightify/utilities/load_hotkeys.dart';
+import 'package:lightify/utilities/status_menu.dart';
 import 'package:lightify/utilities/spotify/spotify_service.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +27,11 @@ class _InitializationPageState extends State<InitializationPage> {
     super.initState();
 
     LoadHotKeys.loadHotKeys(restart);
+    StatusMenu.init(
+      toggleWindow: LoadHotKeys.toggleWindow,
+      refresh: restart,
+      logout: () => LoadHotKeys.logout(restart),
+    );
     spotifyService = GetIt.instance.get<SpotifyService>();
     _runFuture();
   }

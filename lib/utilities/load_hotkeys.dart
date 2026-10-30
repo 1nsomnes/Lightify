@@ -8,7 +8,7 @@ import 'package:lightify/utilities/window_channel.dart';
 import 'package:window_manager/window_manager.dart';
 
 class LoadHotKeys {
-  static Future<void> _toggleWindow() async {
+  static Future<void> toggleWindow() async {
     final isVisible = await windowManager.isVisible();
     if (isVisible) {
       await windowManager.hide();
@@ -17,6 +17,17 @@ class LoadHotKeys {
       await windowManager.show();
       await windowManager.focus();
     }
+  }
+
+  /// Forgets the login (the client ID stays) and restarts, which lands on
+  /// the login page. Ctrl+D and the menu bar's Log Out.
+  static Future<void> logout(Function restart) async {
+    final storage = GetIt.instance.get<FlutterSecureStorage>();
+    await Future.wait([
+      storage.delete(key: "token"),
+      storage.delete(key: "refresh_token"),
+    ]);
+    restart();
   }
 
   static Future<void> _register(
@@ -39,7 +50,7 @@ class LoadHotKeys {
     await Future.wait([
       _register(
         PhysicalKeyboardKey.keyS,
-        _toggleWindow,
+        toggleWindow,
         modifiers: [HotKeyModifier.meta, HotKeyModifier.shift],
         scope: HotKeyScope.system,
       ),
@@ -48,13 +59,11 @@ class LoadHotKeys {
         () => restart(),
         modifiers: [HotKeyModifier.control],
       ),
-      _register(PhysicalKeyboardKey.keyD, () async {
-        await Future.wait([
-          storage.delete(key: "token"),
-          storage.delete(key: "refresh_token"),
-        ]);
-        restart();
-      }, modifiers: [HotKeyModifier.control]),
+      _register(
+        PhysicalKeyboardKey.keyD,
+        () => logout(restart),
+        modifiers: [HotKeyModifier.control],
+      ),
       _register(PhysicalKeyboardKey.keyT, () async {
         spotifyService.setToken("break_token");
         await storage.write(key: "token", value: "break_token");

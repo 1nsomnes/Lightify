@@ -64,6 +64,9 @@ class MainFlutterWindow: NSWindow {
             case "hideWindow":
                 self.close()
                 result(nil)
+            case "updateStatusMenu":
+                StatusMenu.shared.update(call.arguments as? [String: Any] ?? [:])
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -72,7 +75,7 @@ class MainFlutterWindow: NSWindow {
         self.contentViewController = flutterViewController
         RegisterGeneratedPlugins(registry: flutterViewController)
 
-        AppDelegate.setUpStatusItem()
+        StatusMenu.shared.setUp(channel: channel)
 
     }
 
