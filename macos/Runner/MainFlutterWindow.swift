@@ -72,6 +72,8 @@ class MainFlutterWindow: NSWindow {
         self.contentViewController = flutterViewController
         RegisterGeneratedPlugins(registry: flutterViewController)
 
+        AppDelegate.setUpStatusItem()
+
     }
 
     private func moveToActiveDisplay() {
