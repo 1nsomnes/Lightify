@@ -31,6 +31,7 @@ class _InitializationPageState extends State<InitializationPage> {
       toggleWindow: LoadHotKeys.toggleWindow,
       refresh: restart,
       logout: () => LoadHotKeys.logout(restart),
+      transfer: () => spotifyService.transferPlayback(),
     );
     spotifyService = GetIt.instance.get<SpotifyService>();
     _runFuture();

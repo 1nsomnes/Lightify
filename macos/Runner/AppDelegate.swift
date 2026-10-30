@@ -55,7 +55,11 @@ final class StatusMenu: NSObject {
 
     menu.addItem(action("Show Lightify", "toggleWindow"))
     menu.addItem(.separator())
-    // shown like Quit's ⌘Q; the keys themselves are the app's Ctrl+R / Ctrl+D
+    // shown like Quit's ⌘Q; the keys themselves are the app's Ctrl hotkeys
+    let transferItem = action(
+      "Transfer Playback Here", "transfer", key: "t", modifiers: .control)
+    playbackItems.append(transferItem)
+    menu.addItem(transferItem)
     menu.addItem(action("Refresh", "refresh", key: "r", modifiers: .control))
     menu.addItem(action("Log Out", "logout", key: "d", modifiers: .control))
     menu.addItem(.separator())

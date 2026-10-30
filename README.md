@@ -34,7 +34,7 @@
 Why your own client ID? Spotify limits each developer app to a small number of users, so one shared ID can't work for everyone. Playback requires Spotify Premium.
 
 ## How does it work?
-Lightify is a real Spotify player, not a remote: music plays from Lightify itself, so you don't need the Spotify app open. Press Meta + Shift + S anywhere to bring it up, search, play or queue something, and it gets out of your way when you click elsewhere. It's built to be driven from the keyboard, see the keybinds below. Shift + T moves playback over from another device.
+Lightify is a real Spotify player, not a remote: music plays from Lightify itself, so you don't need the Spotify app open. Press Meta + Shift + S anywhere to bring it up, search, play or queue something, and it gets out of your way when you click elsewhere. It's built to be driven from the keyboard, see the keybinds below. Ctrl + T moves playback over from another device.
 
 ## Keybinds
 | KeyBind | Action |
@@ -55,7 +55,6 @@ Lightify is a real Spotify player, not a remote: music plays from Lightify itsel
 | Q | Queue selected song |
 | Shift + Q | Open the queue |
 | Shift + C | Select the currently playing song |
-| Shift + T | Move playback from another device to Lightify |
 | Shift + H / Shift + L | Seek back / forward (hold to keep seeking; step in settings) |
 | Shift + S | Open settings (J/K select, H/L adjust, R reset) |
 | Shift + A | Open the selected item's album (tracks/albums) |
@@ -63,6 +62,7 @@ Lightify is a real Spotify player, not a remote: music plays from Lightify itsel
 | Shift + P | Open the selected item's artist (tracks/albums) or owner's profile (playlists) |
 | J/Down Arrow | Navigate down list item |
 | K/Up Arrow | Navigate up list item |
+| Ctrl + T | Move playback from another device to Lightify |
 | Ctrl + R | Restart |
 | Ctrl + D | Restart and delete cached data |
 

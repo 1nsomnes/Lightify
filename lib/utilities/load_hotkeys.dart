@@ -64,11 +64,17 @@ class LoadHotKeys {
         () => logout(restart),
         modifiers: [HotKeyModifier.control],
       ),
+      _register(
+        PhysicalKeyboardKey.keyT,
+        spotifyService.transferPlayback,
+        modifiers: [HotKeyModifier.control],
+      ),
+      // debug: break the token (Ctrl+Option+T) or both tokens (Ctrl+Shift+T)
       _register(PhysicalKeyboardKey.keyT, () async {
         spotifyService.setToken("break_token");
         await storage.write(key: "token", value: "break_token");
         debugPrint("attempted to break token");
-      }, modifiers: [HotKeyModifier.control]),
+      }, modifiers: [HotKeyModifier.control, HotKeyModifier.alt]),
       _register(PhysicalKeyboardKey.keyT, () async {
         spotifyService.setToken("break_token");
         spotifyService.setRefreshToken("break_token");

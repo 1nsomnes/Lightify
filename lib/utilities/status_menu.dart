@@ -24,11 +24,13 @@ abstract final class StatusMenu {
   static Map<String, Object?>? _lastSent;
 
   /// Handles clicks on the menu. [toggleWindow], [refresh] and [logout] work
-  /// from any page; playback items only once the player is up.
+  /// from any page; playback items (and [transfer]) only once the player is
+  /// up.
   static void init({
     required VoidCallback toggleWindow,
     required VoidCallback refresh,
     required VoidCallback logout,
+    required VoidCallback transfer,
   }) {
     windowChannel.setMethodCallHandler((call) async {
       if (call.method != "menuAction") return;
@@ -39,6 +41,8 @@ abstract final class StatusMenu {
           refresh();
         case "logout":
           logout();
+        case "transfer":
+          transfer();
         case "playPause":
           _playback?.togglePlay();
         case "next":
