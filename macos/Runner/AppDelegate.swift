@@ -55,8 +55,9 @@ final class StatusMenu: NSObject {
 
     menu.addItem(action("Show Lightify", "toggleWindow"))
     menu.addItem(.separator())
-    menu.addItem(action("Refresh", "refresh"))
-    menu.addItem(action("Log Out", "logout"))
+    // shown like Quit's ⌘Q; the keys themselves are the app's Ctrl+R / Ctrl+D
+    menu.addItem(action("Refresh", "refresh", key: "r", modifiers: .control))
+    menu.addItem(action("Log Out", "logout", key: "d", modifiers: .control))
     menu.addItem(.separator())
     menu.addItem(
       NSMenuItem(
@@ -89,8 +90,12 @@ final class StatusMenu: NSObject {
     playbackItems.forEach { $0.isEnabled = hasPlayer }
   }
 
-  private func action(_ title: String, _ name: String) -> NSMenuItem {
-    let item = NSMenuItem(title: title, action: #selector(clicked(_:)), keyEquivalent: "")
+  private func action(
+    _ title: String, _ name: String, key: String = "",
+    modifiers: NSEvent.ModifierFlags = .command
+  ) -> NSMenuItem {
+    let item = NSMenuItem(title: title, action: #selector(clicked(_:)), keyEquivalent: key)
+    item.keyEquivalentModifierMask = modifiers
     item.target = self
     item.representedObject = name
     return item
